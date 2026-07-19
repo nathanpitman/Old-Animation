@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SPFX VIEWER — Show Partner F/X Player</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root{
+  --bg:        #050604;
+  --bezel:     #232320;
+  --bezel-hi:  #333330;
+  --screen:    #04140a;
+  --amber:     #ffb400;
+  --amber-dim: #8a6300;
+  --green:     #39ff6a;
+  --green-dim: #1c6b30;
+  --red:       #ff4d4d;
+  --paper:     #d8d2c2;
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --term: 'VT323', var(--mono);
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0;
+  background:
+    radial-gradient(ellipse at 50% -10%, #14140f 0%, var(--bg) 60%);
+  color:var(--paper);
+  font-family:var(--mono);
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:28px 16px;
+}
+
+.rig{
+  width:100%;
+  max-width:1180px;
+  display:grid;
+  grid-template-columns: minmax(0,1.35fr) minmax(320px, 0.9fr);
+  gap:22px;
+}
+@media (max-width: 880px){ .rig{grid-template-columns:1fr;} }
+
+/* ---------- monitor ---------- */
+.monitor{
+  background:linear-gradient(180deg,#2b2b27,#191916 70%,#111110);
+  border-radius:18px;
+  padding:22px 22px 16px;
+  box-shadow:
+    0 30px 60px -25px rgba(0,0,0,.8),
+    inset 0 1px 0 rgba(255,255,255,.06),
+    inset 0 -6px 14px rgba(0,0,0,.6);
+  border:1px solid #000;
+  position:relative;
+}
+.monitor::before{
+  content:"";
+  position:absolute; inset:0;
+  border-radius:18px;
+  padding:1px;
+  background:linear-gradient(180deg, rgba(255,255,255,.08), transparent 30%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude;
+  pointer-events:none;
+}
+.brandbar{
+  display:flex; justify-content:space-between; align-items:baseline;
+  color:#7a7a72; font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+  padding:0 2px 10px;
+}
+.brandbar b{color:#b9b9ae; font-weight:700;}
+.led{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 6px var(--green); margin-right:6px;}
+
+.screen-wrap{
+  background:#000;
+  border-radius:6px;
+  padding:14px;
+  box-shadow:inset 0 0 0 2px #000, inset 0 0 40px rgba(0,0,0,.9);
+}
+.screen{
+  position:relative;
+  background:var(--screen);
+  border-radius:2px;
+  overflow:hidden;
+  width:100%;
+  aspect-ratio: 320 / 200;
+}
+.screen canvas{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  image-rendering:pixelated;
+  image-rendering:-moz-crisp-edges;
+}
+.scanlines{
+  position:absolute; inset:0; pointer-events:none;
+  background:repeating-linear-gradient(180deg, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 1px, rgba(0,0,0,.22) 2px, rgba(0,0,0,0) 3px);
+  mix-blend-mode:multiply;
+}
+.vignette{
+  position:absolute; inset:0; pointer-events:none;
+  box-shadow: inset 0 0 60px 14px rgba(0,0,0,.75);
+}
+.flicker{
+  position:absolute; inset:0; pointer-events:none;
+  background:rgba(255,255,255,.02);
+  animation:flicker 6s infinite;
+}
+@keyframes flicker{
+  0%,97%,100%{opacity:0;}
+  98%{opacity:1;}
+}
+.boot{
+  position:absolute; inset:0;
+  background:#010301;
+  color:var(--green);
+  font-family:var(--term);
+  font-size:22px;
+  line-height:1.5;
+  padding:16px 18px;
+  white-space:pre-wrap;
+  z-index:5;
+  transition:opacity .5s ease;
+}
+.boot .cursor{display:inline-block;width:9px;height:16px;background:var(--green);vertical-align:-2px;
+  animation:blink 1s steps(1) infinite;}
+@keyframes blink{50%{opacity:0;}}
+
+.crt-caption{
+  display:flex; justify-content:space-between;
+  font-size:11px; color:#7a7a72; letter-spacing:.1em; text-transform:uppercase;
+  padding:10px 4px 0;
+}
+.crt-caption span b{color:var(--amber);}
+
+.transport{
+  display:flex; align-items:center; gap:10px;
+  padding:14px 2px 2px;
+}
+.btn{
+  background:linear-gradient(180deg,#3a3a35,#242420);
+  border:1px solid #111; color:var(--paper);
+  font-family:var(--mono); font-size:12px; letter-spacing:.05em;
+  padding:8px 14px; border-radius:5px; cursor:pointer;
+  box-shadow:0 2px 0 #000, inset 0 1px 0 rgba(255,255,255,.08);
+}
+.btn:hover{background:linear-gradient(180deg,#454540,#2a2a25);}
+.btn:active{transform:translateY(1px); box-shadow:0 1px 0 #000;}
+.btn.primary{color:#12140f; background:linear-gradient(180deg,#ffc84d,var(--amber)); border-color:#7a5200;}
+.btn.primary:hover{filter:brightness(1.06);}
+.transport .spacer{flex:1;}
+.scrub{
+  -webkit-appearance:none; appearance:none;
+  width:100%; height:4px; border-radius:2px; background:#3a3a35; outline:none;
+}
+.scrub::-webkit-slider-thumb{-webkit-appearance:none; width:12px; height:12px; border-radius:50%; background:var(--amber); cursor:pointer;}
+
+/* ---------- side panel ---------- */
+.panel{
+  background:linear-gradient(180deg,#141310,#0c0b09);
+  border:1px solid #000;
+  border-radius:14px;
+  padding:16px 16px 14px;
+  display:flex; flex-direction:column; gap:14px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 20px 50px -30px rgba(0,0,0,.8);
+  min-height:0;
+}
+.panel h2{
+  margin:0 0 8px; font-family:var(--term); font-weight:400;
+  font-size:20px; color:var(--amber); letter-spacing:.04em;
+  border-bottom:1px dashed #3a3a30; padding-bottom:8px;
+}
+.meta{
+  font-size:12px; color:#a8a294; display:grid; grid-template-columns:auto 1fr; gap:4px 10px;
+}
+.meta b{color:var(--paper); font-weight:500;}
+.meta .ok{color:var(--green);}
+
+.dropzone{
+  border:1px dashed #4a4a3e; border-radius:10px; padding:12px;
+  font-size:11.5px; color:#8f8a7a; text-align:center; cursor:pointer;
+  transition:border-color .15s, color .15s, background .15s;
+}
+.dropzone:hover, .dropzone.drag{border-color:var(--amber); color:var(--amber); background:rgba(255,180,0,.05);}
+.dropzone input{display:none;}
+
+.timeline{
+  flex:1; min-height:220px; max-height:360px; overflow-y:auto;
+  border:1px solid #2a2924; border-radius:8px;
+  font-size:11.5px;
+}
+.timeline::-webkit-scrollbar{width:8px;}
+.timeline::-webkit-scrollbar-thumb{background:#3a3830; border-radius:4px;}
+.row{
+  display:grid; grid-template-columns:26px 1fr auto; gap:8px; align-items:center;
+  padding:6px 10px; border-bottom:1px solid #201f1a; cursor:pointer;
+}
+.row:last-child{border-bottom:none;}
+.row:hover{background:rgba(255,180,0,.06);}
+.row.active{background:rgba(57,255,106,.09); box-shadow:inset 2px 0 0 var(--green);}
+.row .idx{color:#736e5e;}
+.row .name{color:var(--paper); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.row .stat{font-size:10px; letter-spacing:.05em; padding:2px 6px; border-radius:3px;}
+.row .stat.loaded{color:var(--green); background:rgba(57,255,106,.1);}
+.row .stat.missing{color:#8a6e6e; background:rgba(255,77,77,.07);}
+.row.active .name{color:var(--green);}
+
+.legend{font-size:10.5px; color:#736e5e; line-height:1.5;}
+.legend b{color:var(--amber);}
+</style>
+</head>
+<body>
+
+<div class="rig">
+
+  <!-- MONITOR -->
+  <div class="monitor">
+    <div class="brandbar"><b><span class="led"></span>SPFX VIEWER</b><span>MODE 13H · 320×200 · 256-COLOR</span></div>
+
+    <div class="screen-wrap">
+      <div class="screen" id="screen">
+        <div class="boot" id="boot"><span id="bootText"></span><span class="cursor"></span></div>
+        <canvas id="canvas" width="320" height="200"></canvas>
+        <div class="vignette"></div>
+        <div class="scanlines"></div>
+        <div class="flicker"></div>
+      </div>
+    </div>
+
+    <div class="crt-caption">
+      <span>FRAME <b id="frameLabel">—</b></span>
+      <span id="dimsLabel">320×200 · 8BPP</span>
+    </div>
+
+    <div class="transport">
+      <button class="btn" id="prevBtn">◀ PREV</button>
+      <button class="btn primary" id="playBtn">▶ PLAY</button>
+      <button class="btn" id="nextBtn">NEXT ▶</button>
+      <div class="spacer"></div>
+      <span style="font-size:11px;color:#7a7a72;">SPEED</span>
+      <input type="range" id="speed" min="80" max="1200" value="450" style="width:90px;">
+    </div>
+    <input type="range" class="scrub" id="scrub" min="0" max="43" value="9" style="margin-top:10px;">
+  </div>
+
+  <!-- SIDE PANEL -->
+  <div class="panel">
+    <div>
+      <h2>ASSET</h2>
+      <div class="meta" id="meta">
+        <b>file</b><span id="mFile">—</span>
+        <b>format</b><span id="mFormat">—</span>
+        <b>size</b><span id="mSize">—</span>
+        <b>palette</b><span id="mPal">—</span>
+        <b>decode</b><span id="mDecode">—</span>
+      </div>
+    </div>
+
+    <div>
+      <h2>LOAD MORE .GX2</h2>
+      <div class="dropzone" id="dropzone">
+        Drop <b>.GX2</b> files here (or click)<br>to fill in other frames from the script
+        <input type="file" id="fileInput" accept=".gx2,.GX2" multiple>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; min-height:0; flex:1;">
+      <h2>LEMMING.SPS SCRIPT</h2>
+      <div class="timeline" id="timeline"></div>
+      <div class="legend">
+        <b>44</b> entries decoded from LEMMING.SPS. Only <b>LEMMING.GX2</b> shipped with this
+        upload — every other frame (BACKx, SCENEx, LEMFXx, CLOUDSx) is referenced by the
+        script but wasn't included, so the strip plays what's on file and skips the rest.
+        Drop matching .GX2 files above to light them up.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* =========================================================================
+   GX2 decoder — reverse engineered from the on-disk header + verified
+   against LEMMING.GX2 (RLE stream consumes to exactly the header-declared
+   size with zero slack).
+   Header:  "GX2"+0x01 | u16 headerSize(0x19) | u8 bpp | u16 width | u16 height
+            | u16 aspectX | u16 aspectY | u8 unk | u16 subhSize | "SPFX"
+            | u16 unk | u8 unk | u16 unk | palette[256*3]
+   Pixel data (from offset 0x31B) is: RLE (high-bit=repeat, low 7 bits=count)
+   -> then a per-row bitmask stream where set bits pull a fresh byte and
+   clear bits copy the pixel directly above.
+   ========================================================================= */
+function decodeGX2(bytes){
+  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  if (String.fromCharCode(bytes[0],bytes[1],bytes[2]) !== "GX2") throw new Error("Not a GX2 file");
+  const bpp     = bytes[6];
+  const width   = dv.getUint16(7,  true);
+  const height  = dv.getUint16(9,  true);
+  const palStart = 0x1B;
+  const palette = new Uint8Array(768);
+  palette.set(bytes.subarray(palStart, palStart+768));
+  const rle = bytes.subarray(palStart+768);
+
+  // 1. RLE decode -> bitmask-compressed row stream
+  const bm = [];
+  for (let i=0; i<rle.length; ){
+    const code = rle[i++];
+    const repeat = (code & 0x80) !== 0;
+    const amount = code & 0x7f;
+    if (repeat){
+      const val = rle[i++];
+      for (let k=0;k<amount;k++) bm.push(val);
+    } else {
+      for (let k=0;k<amount;k++) bm.push(rle[i++]);
+    }
+  }
+  const bmData = Uint8Array.from(bm);
+
+  // 2. bitmask expand -> full stride*height indexed image
+  const stride = width;
+  const maskLen = (stride+7)>>3;
+  const out = new Uint8Array(stride*height);
+  out.set(bmData.subarray(0,stride));
+  let prevRow = 0, writePtr = stride, inPtr = stride;
+  for (let y=1; y<height; y++){
+    const maskPtr = inPtr;
+    inPtr += maskLen;
+    for (let x=0; x<stride; x++){
+      const bit = (bmData[maskPtr + (x>>3)] << (x & 7)) & 0x80;
+      if (bit){ out[writePtr] = bmData[inPtr++]; }
+      else    { out[writePtr] = out[prevRow + x]; }
+      writePtr++;
+    }
+    prevRow += stride;
+  }
+
+  return { width, height, bpp, palette, indices: out, consumedAll: inPtr===bmData.length };
+}
+
+function gx2ToImageData(gx2){
+  const {width,height,palette,indices} = gx2;
+  const imgData = new ImageData(width, height);
+  const d = imgData.data;
+  for (let i=0;i<indices.length;i++){
+    const idx = indices[i];
+    d[i*4+0] = palette[idx*3+0];
+    d[i*4+1] = palette[idx*3+1];
+    d[i*4+2] = palette[idx*3+2];
+    d[i*4+3] = 255;
+  }
+  return imgData;
+}
+
+/* =========================================================================
+   SPS parser — 44 fixed 42-byte records: 20-byte padded filename + 22
+   bytes of fields (x1,y1,x2,y2,w,h,x3,y3,flag1,flag2,delay as little-
+   endian words). Exact semantics of every field aren't fully reversed,
+   but position/size/name are solid enough for a script readout.
+   ========================================================================= */
+function parseSPS(bytes){
+  const RECSZ = 42;
+  const n = Math.floor(bytes.length / RECSZ);
+  const entries = [];
+  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  for (let i=0;i<n;i++){
+    const off = i*RECSZ;
+    let raw = bytes.subarray(off, off+20);
+    let name = "";
+    for (let c of raw){ if (c===0) break; name += String.fromCharCode(c); }
+    name = name.trim();
+    const f = [];
+    for (let w=0; w<11; w++) f.push(dv.getUint16(off+20+w*2, true));
+    entries.push({
+      name, x: f[2], y: f[3], w: f[4], h: f[5], delay: f[10]
+    });
+  }
+  return entries;
+}
+
+/* ========================= wiring it up ========================= */
+const b64gx2 = "R1gyARkACEAByAAEAAMAAAkAU1BGWA8AAAIAAAAAAACrAKsAAKurqwAAqwCrq1cAq6urV1dXV1f/V/9XV////1dX/1f///9X////7+/v39/f09PTw8PDt7e3q6urm5ubj4+Pf39/c3NzZ2dnV1dXS0tLOzs7Ly8vIyMj/wAA7wAA4wAA1wAAywAAvwAAswAApwAAmwAAiwAAfwAAcwAAZwAAWwAATwAAQwAA/9vb/7u7/5+f/39//19f/0ND/yMj/wAA/6tf/5tD/4sj/3sA528Az2MAt1cAn08A///b//+7//+f//9///tf//dD//cj//cA59sAz8cAt68An58Ah4cAc28AW1cAQ0MA0/9fx/9Dt/8jo/8Ak+cAg88Ad7cAY58A2//bv/+7n/+fg/9/Y/9fQ/9DI/8jAP8AAP8AAO8AAOMAANcAB8sAB78AB7MAB6cAB5sAB4sAB38AB3MAB2cAB1sAB08AB0MA2///u///n///f//7X///Q///I///AP//AOfnAM/PALe3AJ+fAIeHAHNzAFtbAENDX7//Q7P/I6v/AJ//AI/nAH/PAG+3AF+f29v/u7//n5//f4P/X2P/Q0P/Iyf/AAf/AAD/AADvAADjAADXAADLAAC/AACzAACnAACbAACLAAB/AABzAABnAABbAABPAABD89v/57v/25//03//y1//v0P/tyP/qwD/mwDngwDPdwC3YwCfUwCHRwBzNwBbKwBD/9v//7v//5///3///1///0P//yP//wD/4wDnywDPtwC3nwCfhwCHbwBzWwBbQwBD/+vf/+PT/9vH/9e//8+z/8en/7+f/7uT/7OD/6dz/59j85df649b34tX04NTy39Pv3tLt3NHq2tDo2c/n2M7k183i1szg1Mvd08rb0snX0MjVz8fSzsbQzMbOy8XKyMPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAxysrx08rx3crx58rx8crn8crd8crT8crK8czK8dfK8eLK8e3K6vHK3/HK1PHLyvHWyvHhyvHsyvHxyuvxyuDxytXxysr/////3H/ccJx/wD/AP8A/wD/AP8AtwACBniVAAYKCl8KCgqRAAQGfAAekwALYmJhYgJhCre4uLiKAAEFhgAFBe+AH4CSABJwcAIKCmICAmcKCgq5tLq5uLiKAAIPgIUABQPH+B7AjwAMAbAA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stCSAAfU087Oz9DRhc4Cz9CEzgLP05EABdDsZUDMkgARA9XSzs/Qz87Qzs7Qz8/Q1AOSAAQcQ8GAkgAK0NHPztDPzs7P0JEABVZiAwMwkgANZ9TQz87Pz87Oz9DU1JEABWA/CAZIkgANZmrOz9DQ0c/Pz9DSA5EABUgaHAxQkgAMZ9LOz9DP0M/P0NMDkQAFfwMQGKCSAA4Da2po0tDPz87Qz9DSA5EABSgMIDHAkgAKAwLOz8/P0NLTA5EABR3HDAeAkgAPaGrR0M/Pzs7Pz87P0tMDkQAEEIHYD5MAC2XQzs/Pz87P09MDkQAEGQGwDpMACmRoZc/Qzs7T0gORAAQzgwAMkwAJaWNlZ9HP0NIDkQAEe+DAQJMADGdkZmrRZWbQz8/Oz5EABHOBgCCTAAljZgLQAgLPztCRAARYgwHAkwAJZWnSas7Oz8/QkQAEMAACkJMABQJlz9DPkQAEWIAACJMABQJkZNHRkQAEDgIACJMABWjSZs/SkQAEL48COJMADmZjZmhmaM/P0M/O0dIDkQAEffwPUJMAEmZlZ2lqAmrS0M/Q0M/Pz9DPA5EAA22XHpQADmVkA2hq0dDPz87P0NDQkQAEVoIx4JMADGRlAmnSzs/Qz9HR0pEABBOmYGCTAAsDagMD0dDPz9DSA5EABGQDw8CTAAtjY2jQz8/Q0dHSA5EABGYhgYCTAAllZmkD0tDQ0gORAANkaAGUAAdmaGcD0dEDkQADZDAElAAGAmoD0tHPkQACQCKVAANpA9GRAAFglgACA2iRAAMgHA6FAAEOjgAKZ9LS0c/R0mVlZZEAAyARFoQABAf3/4CMAAYDA9HP0gOHZQJmZoplkgACDAyEAAQ////4iwAIAwPS0QNlZWWIZgJnZ4pmhmUEAD//+I4ACwIIAAAAA//5///AigABH5NlAs/ShGUDZmZmkmeEZohlB2Zm////98CNAAEDhAAGP/gAAH/+igABf4plkmaFZQLRz4RlhGaHZ4Vmh2UFZmZnZ2eF/wGAjAABB4QAB3/AAAAH//+JAAH4imaSZ4Zmh2UEA9LRZYRmiWeFZoplCmZmZ2f/wAAP//CMAAYDgAAAA/yEAAM///6HAAID4JBnh2YKZWVlA9LPZWVlZolniWaJZQNmZ2eEAAI//I0ABfgAAA/AhAAMAf////P//AAAAA+Ah2cPZmZmZWXRz8/SA2VlZmZmimeHZp9lA2ZmZ4UAAn/AhgALB///gAAD8AAB/4CGAIX/CgAAAH8AZ2dnZmaYZQbV1NLS0tWFZQJmZopnjWYCZWWQZoVlBGZmZ2eFAAIP/4YACn////gAB/gAH/yHAAEBhP8H8AAD/ABnZ4RmimWUZoRlAtTUhNUC1NSEZYVmj2cCZmaQZwJmZodlBWZmZmdnhQADA//AhAALB/////wAA/gAf/CJAAgMAAP8AAfwAIRnhmaGZYRmlGeEZgFlh9MCZWWEZolnhGYJZWVlZmZmZ2dnhgACP/iEAAp/+AAAfwAP9g/+jQAF/wA/gACGZwJmZodlhGaIZwZmZWXT09KE0QPS0tKFZQJmZohnAmZmhWUEZmdnZ4cAAf6EAAp7gAAAB/AO+//gjQAMD//8AABnZ2ZmZmVlhGaEZwJmZoRlA9LS0YTQAtHRhWWFZoRnAmZmimUEZmZmZ4cADz/AAAADvAAAAAP//w3/gI0ACgP/+AAAZ2dnZmaGZYZnhGaHZQPR0dGE0IVmh2eKZgNnZ2eHAAYH+AAAH8CEAAT/7AHwjwAJ/8AAAGdnZmZmhmUDZmZmhWeHZgPQ0NGOZ4cABgH/AAH/gIQABA/wAICTAAZnZ2dmZmaHZQNmZmaIZwTR0dDRiAAEP////IYAA6ADQJMABmdnZ2ZmZo9lhGYIZ2dn0dDQ0NGIAAQH///ghgADQGYgkwADZ2dnj2aEZwHQhM8B0YkAAv/+iAACJMCTAI9nBM7O0NCRAAMBAHiUAAXR0NDPz5IAA4AYEJMABNDOztGSAAMB546TAIXPBtDPz9HR0ZMAAuA8kwADzs7OhNCRAAQGHwPgkwAC0dGEzwbOz9DQz8+RAAQBDgUBkwAB0ITOAs/RkQAFA/AD0ICSAALQz4bOBM/Oz9GSAAOAAKOTAAXPzs7Q0JEABR6AAB54kgAJ0dHPz87Oz8/PhNGRAAULAAAK8JIAAdCEzoTQkQAFYAAAD+CSAAXR0c/Q0ITPkQAFOAAADASSAAbQ0M/Oz9GQAAgHlAAAA+P//JAAhNEDz87PhNCJ0YXQAtHRkAAJC8gAAAWP///AjwAB0YTQBM7Oz8+L0IXPhdAB0ZAACRXwAAACYf4P4I8AAtHQhM8Czs6PzwLQ0ZAACQjgAAAB0b//4I8AAdCGzgPP0NCPzgLP0JAAAWCEAAQuYAAQjwAJ0dHOz8/P0NDRkAABMIQABB0AABCPAAfQ0M7Ozs/QjwADAYMGhAADgABgjwAJ0dHPzs/Pz87PkAAJwbmDAAADAAAojwAC0NCJzwTOzs7QkAADHs/OhQABJI8ABs/Pz87Qz4XQBs/Pz9DP0JAACQsw1AAAAwAAEo8ADc7P0M7Qz87P0M/Pz9CQAAkP/7gAAAXgAFCPAAbP0NDPz86FzwzOzs/Q0M/Q0M7Oz9CRAAi2MgAADgAAJI8Ahs4Hz8/P0NDQz5AACQGcHAAAH4AByI8ACtDP0NDPzs/Pz9CEzgTPz9DPkAAJMNAPAADwAACIjwAFz87Qz8+EzgbPz8/Q0NCQAAlD3AAAAfgABxCPAITPhM4Kz9DQ0M7Oz8/Qz5AACYKAAAADAAACIY8ACNHQzs/Q0M/QjwALAZAAAAAH4AAIUICOAAXQ0M/P0ITOBM/O0NCQAAorAAAAPAAABMJAjgANztDPzs/Pz9DQz8/P0I8ACwPFAAAA3gAAGSMgjgAE0M/PzoTPC9DQzs7P0M/Qzs/QjwALBAcAAANgAAAyjICOAA/Qzs7Oz8/Q0M/Qz87Ozs+PAAoImAAAD/gAAGXRjwAJ0M7Oz8/P0NDQhM4Iz9DPzs/Qzs6PAAoTCAAA9AAAABogjwAE0M/OzoTPBdDPz87OjwAKBAAAAf+AAACMwI8AAs/PhdCEzgXPzs7Qzo8ACgIAAD8AAAADQAGPAAHOhc8F0M/P0M+PAAoiAAB/+AAAB/CBjwAD0M/PhdCGzgnP0NDQz8/Ozs6PAAlJ/8HAAAAB/OCQAAHQjs8B0IbPBNDPzs6OAAw/gAA+/gAADrmAAECOAIfQhc8B0ITPBc7Oz8/PhNADz87PjgAMwA///zgAAfdjAACAjgCW0APOzs6Fz4TQBM/Pzs6NAA0Df////4AAAvveAADAjgAC0NChz4XQh88Dzs/QjQANBPXv///AAB0H/AAAUI4AAtDPhM6E0JbOBc/Pz9DPiM4Cz9CNAAMJifCEAAYu/AAAACiOAATQz87OhM8Fzs/Q0NCFzwPOz9CNAA0TA2AAAAAP0fgAAADEjgAC0M+FzobPAtDPh84B0I0ACAYAgAAAAB/uhAABAo4ABM/Ozs+H0ATPz8/QjQABCoQAAwfwN4QAARCOAIjPB9DPz87Ozs+NAAgpgAAAAPn/2IQAATiOAALQ0IfPhNCHz4TOAc+NAAFHhP8DeTHgkwCF0J/PhNACz8+Fzo4AAX+E/wHulACg0ITPic6OAAVYYB9/+JUAks+Ezo0ABgGn3/7fgJUAh88BzojPhM4Bz4fOjQAFA/+/4aCWAAHPls6NAAEGmgACz86NAAEMmgACz86NAAG4iwABBY4ABtDPz87P0IwAAgEQiwABCI4AA9DOzpkAAQKOAAHPmQABBI4AAc6NAAFgmgACz86aAAGAjQAB0I0AAcCLAAEBjgADz87PmQABAo4AAc7QAKj//wD/AMIA";
+const b64sps = "QkFDSzEuR1gyICAgICAgICAgICAAAAAAAAAAAAAAAAAAAAAAAAECAgoAQkFDSzIuR1gyICAgICAgICAgICAAAAAA7ABeAFMAaADsAF4AAAUAAgoAQkFDSzMuR1gyICAgICAgICAgICAAAAAABAAQADABKgAEABAAAAUAAgoAQkFDSzQuR1gyICAgICAgICAgICAAAAAALAAMABwAGgAsAAwAAAUAAAoAQkFDSzUuR1gyICAgICAgICAgICAAAAAANAASAAwADAA0ABIAAAAAAgAAQkFDSzQuR1gyICAgICAgICAgICAAAAAANAAUAAwACAA0ABQAAAAAAgoAICAgICAgICAgICAgICAgICAgICAAAAAAAACwAEQAFgAAALAAAAMBAQoAICAgICAgICAgICAgICAgICAgICAAAAAARAC4AIwADABEALgAAAMBAf//ICAgICAgICAgICAgICAgICAgICAAAAAAAAAAAAAAAAAAAAAAADUAABQATEVNTUlORy5HWDIgICAgICAgICAAAAAAAAAAAAAAAAAAAAAAAAECAgoAU0NFTkUyLkdYMiAgICAgICAgICAAAAAAeAAMAFQAdAB4AAwAAAAAAgIAU0NFTkUzLkdYMiAgICAgICAgICAAAAAAdAAOAFAAdAB0AA4AAAAAAgIAU0NFTkU0LkdYMiAgICAgICAgICAAAAAAdAAQAFAAcgB0ABAAAAAAAgIAU0NFTkU1LkdYMiAgICAgICAgICAAAAAAbAAQAFgAcABsABAAAAAAAgIAU0NFTkU2LkdYMiAgICAgICAgICAAAAAAaAAQAFQAdABoABAAAAAAAgIAU0NFTkU3LkdYMiAgICAgICAgICAAAAAAdAAQAFAAeAB0ABAAAAAAAgIAU0NFTkUyLkdYMiAgICAgICAgICAAAAAAeAAMAFQAdAB4AAwAAAAAAgIAU0NFTkUzLkdYMiAgICAgICAgICAAAAAAdAAOAFAAdAB0AA4AAAAAAgIAU0NFTkU0LkdYMiAgICAgICAgICAAAAAAdAAQAFAAcgB0ABAAAAAAAgIAU0NFTkU1LkdYMiAgICAgICAgICAAAAAAbAAQAFgAcABsABAAAAAAAgIAU0NFTkU2LkdYMiAgICAgICAgICAAAAAAaAAQAFQAdABoABAAAAAAAgIAU0NFTkU3LkdYMiAgICAgICAgICAAAAAAdAAQAFAAeAB0ABAAAAAAAgIATEVNRlgwLkdYMiAgICAgICAgICAAAAAAAAAAAAAAAAAAAAAAAAAAAgIATEVNRlguR1gyICAgICAgICAgICAAAAAAAAAAAAAAAAAAAAAAAAAAAgUATEVNRlgxLkdYMiAgICAgICAgICAAAAAARAB2ABgAEgBEAHYAAAAAAgEATEVNRlguR1gyICAgICAgICAgICAAAAAAAAAAAAAAAAAAAAAAAAAAAgIATEVNRlgxLkdYMiAgICAgICAgICAAAAAARAB2ABgAEgBEAHYAAAAAAgEATEVNRlguR1gyICAgICAgICAgICAAAAAAAAAAAAAAAAAAAAAAAAAAAgIATEVNRlgzLkdYMiAgICAgICAgICAAAAAAPAB0ACQAFgA8AHQAAAAAAgIATEVNRlgyLkdYMiAgICAgICAgICAAAAAAQAB2ABwAFABAAHYAAAAAAgIATEVNRlguR1gyICAgICAgICAgICAAAAAAAAAAAAAAAAAAAAAAAAAAAgEATEVNRlgwLkdYMiAgICAgICAgICAAAAAAAAAAAAAAAAAAAAAAAAAAAgIAU0NFTkU3LkdYMiAgICAgICAgICAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAU0NFTkU4LkdYMiAgICAgICAgICAAAAAAAAAAAAAAAAAAAAAAAAQBAgAAQ0xPVURTLkdYMiAgICAgICAgICAAAAAAAABYAD8BTgAAAFgAAAQDAgAAQ0xPVURTRlguR1gyICAgICAgICAAAAAAPABYACQAEAA8AFgAAAAAAgEAQ0xPVURTLkdYMiAgICAgICAgICAAAAAAAABYAD8BTgAAAFgAAAAAAgAAQ0xPVURTMi5HWDIgICAgICAgICAAAAAAAABaAD8BVAAAAFgAAAQDAgAAQ0xPVURTMkYuR1gyICAgICAgICAAAAAASABaABQAEABIAFgAAAAAAgEAQ0xPVURTMi5HWDIgICAgICAgICAAAAAAAABaAD8BVAAAAFgAAAAAAgAAU0NFTkU4LkdYMiAgICAgICAgICAAAAAAAABYAD4BZgAAAFgAAAQDAgAAU0NFTkU3LkdYMiAgICAgICAgICAAAAAAAAAAAAAAAAAAAAAAAAQAAgAAICAgICAgICAgICAgICAgICAgICAAAAAAAAAAAAAAAAAAAAAAABEAAgAA/yAgICAgICAgICAgICAgICAgICAAAAAAAAAAAAAAAAAAAAAAABEAAgAA";
+function b64ToBytes(b64){
+  const bin = atob(b64);
+  const arr = new Uint8Array(bin.length);
+  for (let i=0;i<bin.length;i++) arr[i] = bin.charCodeAt(i);
+  return arr;
+}
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const assets = {}; // name -> decoded gx2 image data
+let spsEntries = [];
+let currentIndex = 9; // LEMMING.GX2's slot in the script
+let playing = false;
+let playTimer = null;
+
+function loadGX2Bytes(name, bytes){
+  try{
+    const gx2 = decodeGX2(bytes);
+    assets[name.toUpperCase()] = { gx2, imgData: gx2ToImageData(gx2) };
+    return true;
+  }catch(e){
+    console.error("Failed to decode", name, e);
+    return false;
+  }
+}
+
+function renderFrame(idx){
+  const entry = spsEntries[idx];
+  if (!entry) return;
+  document.getElementById('frameLabel').textContent = (idx+1)+" / "+spsEntries.length;
+  document.getElementById('scrub').value = idx;
+  const asset = entry.name && assets[entry.name.toUpperCase()];
+
+  document.querySelectorAll('.row').forEach(r=>r.classList.remove('active'));
+  const row = document.getElementById('row-'+idx);
+  if (row){ row.classList.add('active'); row.scrollIntoView({block:'nearest'}); }
+
+  ctx.fillStyle = '#04140a';
+  ctx.fillRect(0,0,320,200);
+  if (asset){
+    ctx.putImageData(asset.imgData, 0, 0);
+    document.getElementById('mFile').textContent = entry.name;
+    document.getElementById('mFormat').textContent = asset.gx2.bpp+"-bit indexed / GX2";
+    document.getElementById('mSize').textContent = asset.gx2.width+"×"+asset.gx2.height;
+    document.getElementById('mPal').textContent = "256 colors";
+    document.getElementById('mDecode').textContent = asset.gx2.consumedAll ? "clean (buffer fully consumed)" : "partial";
+  } else {
+    ctx.fillStyle = '#39ff6a';
+    ctx.font = '10px monospace';
+    ctx.fillText(entry.name ? (entry.name+" NOT FOUND") : "(blank cue)", 8, 14);
+    document.getElementById('mFile').textContent = entry.name || "(none)";
+    document.getElementById('mFormat').textContent = "—";
+    document.getElementById('mSize').textContent = "—";
+    document.getElementById('mPal').textContent = "—";
+    document.getElementById('mDecode').textContent = "asset not loaded";
+  }
+  currentIndex = idx;
+}
+
+function buildTimeline(){
+  const el = document.getElementById('timeline');
+  el.innerHTML = "";
+  spsEntries.forEach((e, i)=>{
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.id = 'row-'+i;
+    const loaded = e.name && assets[e.name.toUpperCase()];
+    row.innerHTML = `<span class="idx">${String(i+1).padStart(2,'0')}</span>
+                      <span class="name">${e.name || '(blank)'}</span>
+                      <span class="stat ${loaded?'loaded':'missing'}">${loaded?'LOADED':'MISSING'}</span>`;
+    row.addEventListener('click', ()=>{ stop(); renderFrame(i); });
+    el.appendChild(row);
+  });
+}
+
+function refreshLoadedStates(){
+  document.querySelectorAll('.row').forEach((row,i)=>{
+    const e = spsEntries[i];
+    const stat = row.querySelector('.stat');
+    const loaded = e.name && assets[e.name.toUpperCase()];
+    stat.textContent = loaded ? 'LOADED' : 'MISSING';
+    stat.className = 'stat ' + (loaded?'loaded':'missing');
+  });
+}
+
+function step(dir){
+  let idx = currentIndex;
+  for (let tries=0; tries<spsEntries.length; tries++){
+    idx = (idx + dir + spsEntries.length) % spsEntries.length;
+    renderFrame(idx);
+    return;
+  }
+}
+
+function play(){
+  playing = true;
+  document.getElementById('playBtn').textContent = '⏸ PAUSE';
+  const tick = ()=>{
+    if (!playing) return;
+    step(1);
+    const speed = 1300 - Number(document.getElementById('speed').value);
+    playTimer = setTimeout(tick, Math.max(80, speed));
+  };
+  tick();
+}
+function stop(){
+  playing = false;
+  clearTimeout(playTimer);
+  document.getElementById('playBtn').textContent = '▶ PLAY';
+}
+
+document.getElementById('playBtn').addEventListener('click', ()=> playing ? stop() : play());
+document.getElementById('nextBtn').addEventListener('click', ()=>{ stop(); step(1); });
+document.getElementById('prevBtn').addEventListener('click', ()=>{ stop(); step(-1); });
+document.getElementById('scrub').addEventListener('input', (e)=>{ stop(); renderFrame(Number(e.target.value)); });
+
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+dropzone.addEventListener('click', ()=> fileInput.click());
+['dragenter','dragover'].forEach(ev=>dropzone.addEventListener(ev, e=>{e.preventDefault(); dropzone.classList.add('drag');}));
+['dragleave','drop'].forEach(ev=>dropzone.addEventListener(ev, e=>{e.preventDefault(); dropzone.classList.remove('drag');}));
+dropzone.addEventListener('drop', e=>handleFiles(e.dataTransfer.files));
+fileInput.addEventListener('change', e=>handleFiles(e.target.files));
+
+function handleFiles(fileList){
+  [...fileList].forEach(file=>{
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      const bytes = new Uint8Array(reader.result);
+      if (loadGX2Bytes(file.name.replace(/\.[^.]+$/, '.GX2'), bytes)){
+        refreshLoadedStates();
+        renderFrame(currentIndex);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+/* boot sequence, then init */
+const bootLines = [
+  "SHOW PARTNER F/X  v3.7",
+  "Copyright 1985-90",
+  "",
+  "Loading LEMMING.GX2 ...",
+  "RLE decompress ....... OK",
+  "Row bitmask expand ... OK",
+  "256-color palette .... OK",
+  "",
+  "Reading LEMMING.SPS ..",
+  "44 script entries found",
+  "",
+  "Press ANY KEY to continue_"
+];
+function runBoot(){
+  const target = document.getElementById('bootText');
+  let text = "";
+  let li = 0, ci = 0;
+  function typeNext(){
+    if (li >= bootLines.length){
+      setTimeout(()=>{
+        document.getElementById('boot').style.opacity = 0;
+        setTimeout(()=> document.getElementById('boot').style.display='none', 500);
+      }, 500);
+      return;
+    }
+    const line = bootLines[li];
+    if (ci <= line.length){
+      target.textContent = text + line.slice(0, ci);
+      ci++;
+      setTimeout(typeNext, line.length ? 8 : 40);
+    } else {
+      text += line + "\n";
+      li++; ci = 0;
+      setTimeout(typeNext, 60);
+    }
+  }
+  typeNext();
+}
+
+function init(){
+  const gx2Bytes = b64ToBytes(b64gx2);
+  const spsBytes = b64ToBytes(b64sps);
+  loadGX2Bytes("LEMMING.GX2", gx2Bytes);
+  spsEntries = parseSPS(spsBytes);
+  document.getElementById('scrub').max = spsEntries.length - 1;
+  buildTimeline();
+  refreshLoadedStates();
+  renderFrame(9);
+  runBoot();
+}
+init();
+</script>
+</body>
+</html>

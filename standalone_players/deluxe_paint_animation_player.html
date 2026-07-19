@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ANM // DeluxePaint Animation Player</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&display=swap');
+
+  :root{
+    --bg: #0b0d0a;
+    --panel: #14170f;
+    --panel2: #191d13;
+    --line: #2a3022;
+    --amber: #ffb000;
+    --amber-dim: #8a6000;
+    --green: #33ff66;
+    --ink: #d8d9c8;
+    --ink-dim: #7a806c;
+    --red: #ff4d4d;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; min-height:100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+  }
+  body{
+    background-image:
+      radial-gradient(ellipse at top, rgba(255,176,0,0.05), transparent 60%),
+      repeating-linear-gradient(180deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 3px);
+  }
+  .wrap{
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 28px 18px 60px;
+  }
+  header{
+    display:flex; align-items:baseline; justify-content:space-between;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 14px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  header h1{
+    font-family: 'Press Start 2P', monospace;
+    font-size: 15px;
+    letter-spacing: 1px;
+    color: var(--amber);
+    margin: 0;
+    text-shadow: 0 0 12px rgba(255,176,0,0.35);
+  }
+  header .tag{
+    color: var(--ink-dim);
+    font-size: 17px;
+    letter-spacing: 0.5px;
+  }
+  .dropzone{
+    border: 2px dashed var(--line);
+    border-radius: 4px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease;
+    background: var(--panel);
+  }
+  .dropzone:hover, .dropzone.drag{
+    border-color: var(--amber-dim);
+    background: var(--panel2);
+  }
+  .dropzone .big{
+    font-size: 26px;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .dropzone .small{
+    color: var(--ink-dim);
+    font-size: 17px;
+  }
+  input[type=file]{ display:none; }
+
+  .player{ margin-top: 24px; }
+  .crt{
+    position: relative;
+    background: #000;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 14px;
+    box-shadow: inset 0 0 40px rgba(0,0,0,0.8), 0 0 30px rgba(255,176,0,0.04);
+  }
+  .crt::after{
+    content:"";
+    position:absolute; inset:14px;
+    pointer-events:none;
+    background: repeating-linear-gradient(180deg, rgba(0,0,0,0.18) 0px, rgba(0,0,0,0.18) 1px, transparent 1px, transparent 3px);
+    mix-blend-mode: multiply;
+    border-radius: 3px;
+  }
+  .canvas-holder{
+    display:flex; justify-content:center; align-items:center;
+    overflow: auto;
+    background:#000;
+    min-height: 60px;
+  }
+  canvas{
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    display:block;
+  }
+  .led-row{
+    display:flex; align-items:center; gap:14px;
+    position:absolute; top: 18px; right: 22px;
+    font-size: 13px; color: var(--ink-dim);
+    letter-spacing:1px;
+  }
+  .led-item{ display:flex; align-items:center; gap:6px; }
+  .led{
+    width:8px; height:8px; border-radius:50%;
+    background: #3a2200;
+    box-shadow: 0 0 4px rgba(0,0,0,0.6) inset;
+  }
+  .led.on{
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green), 0 0 2px var(--green);
+  }
+  .led.cyc.on{
+    background: var(--amber);
+    box-shadow: 0 0 8px var(--amber), 0 0 2px var(--amber);
+  }
+  .nowplaying{
+    position:absolute; top:18px; left:22px;
+    font-size:13px; color: var(--ink-dim); letter-spacing:1px;
+    max-width: 55%;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+
+  .controls{
+    margin-top: 16px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 14px 16px;
+  }
+  .row{
+    display:flex; align-items:center; gap:12px;
+    flex-wrap: wrap;
+  }
+  .row + .row{ margin-top: 12px; }
+
+  button{
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    background: var(--panel2);
+    color: var(--amber);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 6px 14px;
+    cursor: pointer;
+    letter-spacing: 1px;
+  }
+  button:hover{ border-color: var(--amber-dim); background:#1e2317; }
+  button:active{ transform: translateY(1px); }
+  button:focus-visible, input:focus-visible{
+    outline: 2px solid var(--amber);
+    outline-offset: 2px;
+  }
+  button.primary{ color: var(--bg); background: var(--amber); border-color: var(--amber); font-weight:bold; }
+  button.primary:hover{ background:#ffc233; }
+  button:disabled{ opacity: 0.4; cursor: default; }
+  button.small{ font-size:16px; padding:3px 9px; }
+
+  input[type=range]{
+    flex: 1;
+    accent-color: var(--amber);
+    min-width: 120px;
+  }
+  input[type=number]{
+    width: 64px;
+    font-family:'VT323', monospace;
+    font-size: 19px;
+    background: var(--panel2);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 3px 6px;
+    border-radius: 3px;
+  }
+  label{ color: var(--ink-dim); font-size: 17px; white-space:nowrap; }
+  .framecount{
+    color: var(--ink-dim); font-size: 17px; min-width: 90px; text-align:right;
+  }
+  input[type=checkbox]{ accent-color: var(--amber); }
+
+  .meta{
+    margin-top: 14px;
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px,1fr));
+    gap: 10px;
+  }
+  .meta .cell{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 8px 12px;
+  }
+  .meta .cell .k{ color: var(--ink-dim); font-size: 14px; letter-spacing:1px; text-transform:uppercase; }
+  .meta .cell .v{ color: var(--green); font-size: 22px; }
+
+  .panel{
+    margin-top: 14px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 10px 16px;
+  }
+  .panel .title{
+    display:flex; align-items:center; justify-content:space-between;
+    color: var(--ink-dim); font-size:14px; letter-spacing:1px; text-transform:uppercase; margin-bottom:8px;
+  }
+  .panel table{ width:100%; border-collapse: collapse; font-size: 17px; }
+  .panel th{ text-align:left; color: var(--ink-dim); font-weight:normal; font-size:13px; letter-spacing:1px; text-transform:uppercase; padding: 2px 8px 6px 0; }
+  .panel td{ padding: 5px 8px 5px 0; color: var(--ink); border-top: 1px solid var(--line); }
+  .swatch{ display:inline-block; width:44px; height:12px; vertical-align:middle; border:1px solid #000; }
+  .panel .none{ color: var(--ink-dim); font-size:16px; }
+
+  .playlist-row{ cursor:pointer; }
+  .playlist-row:hover td{ background: rgba(255,176,0,0.05); }
+  .playlist-row.active td{ color: var(--amber); }
+  .playlist-row.active td:first-child{ border-left: 3px solid var(--amber); padding-left: 6px; }
+  .playlist-row.error td{ color: var(--red); }
+  .playlist-row .rm{
+    background:none; border:none; color: var(--ink-dim); cursor:pointer; font-size:18px; padding:0 4px;
+  }
+  .playlist-row .rm:hover{ color: var(--red); }
+
+  .error{
+    margin-top: 20px;
+    border: 1px solid var(--red);
+    color: var(--red);
+    background: rgba(255,77,77,0.06);
+    padding: 12px 16px;
+    border-radius: 4px;
+    font-size: 18px;
+  }
+  .filename{ color: var(--ink-dim); font-size:15px; margin-top: 8px; }
+
+  ::selection{ background: var(--amber); color: #000; }
+
+  @media (prefers-reduced-motion: reduce){
+    .led.on{ box-shadow:none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>ANM PLAYER</h1>
+    <div class="tag">DeluxePaint Animation (.ANM) — LPF/RLE decoder with palette cycling &amp; playlists, runs entirely in-browser</div>
+  </header>
+
+  <div class="dropzone" id="drop">
+    <div class="big">Drop one or more .ANM files here, or click to choose</div>
+    <div class="small">Multiple files play back as a continuous playlist. Nothing is uploaded anywhere.</div>
+    <input type="file" id="fileInput" accept=".anm" multiple>
+  </div>
+  <div class="filename" id="filename"></div>
+
+  <div id="err" class="error" hidden></div>
+
+  <div class="player" id="player" hidden>
+    <div class="crt">
+      <div class="nowplaying" id="nowPlaying"></div>
+      <div class="led-row">
+        <div class="led-item"><div class="led cyc" id="ledCycle"></div><span>CYCLE</span></div>
+        <div class="led-item"><div class="led" id="led"></div><span id="ledLabel">STOPPED</span></div>
+      </div>
+      <div class="canvas-holder">
+        <canvas id="canvas"></canvas>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="row">
+        <button id="prevTrackBtn" title="Previous track">⏮</button>
+        <button id="playBtn" class="primary">▶ Play</button>
+        <button id="nextTrackBtn" title="Next track">⏭</button>
+        <button id="prevBtn">◀ Frame</button>
+        <button id="nextBtn">Frame ▶</button>
+        <input type="range" id="scrub" min="0" max="0" value="0" step="1">
+        <span class="framecount" id="frameCount">0 / 0</span>
+      </div>
+      <div class="row">
+        <label for="fps">FPS</label>
+        <input type="number" id="fps" min="1" max="60" value="10">
+        <label for="zoom">Zoom</label>
+        <input type="number" id="zoom" min="1" max="8" value="2">
+        <label for="staticDuration">Static image hold</label>
+        <input type="number" id="staticDuration" min="1" max="120" value="5">
+        <span class="framecount">sec</span>
+        <label><input type="checkbox" id="loop" checked> Loop</label>
+        <label><input type="checkbox" id="cycleToggle" checked> Palette cycling</label>
+        <button id="pngBtn">Save frame as PNG</button>
+      </div>
+    </div>
+
+    <div class="meta">
+      <div class="cell"><div class="k">Track</div><div class="v" id="mTrack">—</div></div>
+      <div class="cell"><div class="k">Dimensions</div><div class="v" id="mDim">—</div></div>
+      <div class="cell"><div class="k">Frames</div><div class="v" id="mFrames">—</div></div>
+      <div class="cell"><div class="k">Source FPS</div><div class="v" id="mFps">—</div></div>
+      <div class="cell"><div class="k">Active cycles</div><div class="v" id="mCycles">—</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="title">
+        <span>Playlist</span>
+        <button id="clearPlaylistBtn" class="small">Clear playlist</button>
+      </div>
+      <div id="playlistTable"></div>
+    </div>
+
+    <div class="panel">
+      <div class="title">Palette cycle ranges (current track)</div>
+      <div id="cycleTable"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- ANM parsing ----------
+  // Format derived from FFmpeg's libavformat/anm.c + libavcodec/anm.c (Deluxe
+  // Paint Animation demuxer/decoder), cross-checked against the header layout
+  // documented on wiki.multimedia.cx (recovered from iffanim.txt).
+
+  function parseANM(arrayBuffer){
+    const u8 = new Uint8Array(arrayBuffer);
+    const dv = new DataView(arrayBuffer);
+    const len = u8.length;
+
+    function need(n, what){
+      if (n > len) throw new Error("File too short while reading " + what + ".");
+    }
+
+    need(4, "magic");
+    const magic = String.fromCharCode(u8[0], u8[1], u8[2], u8[3]);
+
+    need(16, "page header");
+    let nbRecordsRaw = dv.getUint32(8, true);
+    const pageTableOffset = dv.getUint16(14, true);
+
+    need(24, "anim tag / dimensions");
+    const animTag = String.fromCharCode(u8[16], u8[17], u8[18], u8[19]);
+    const width = dv.getUint16(20, true);
+    const height = dv.getUint16(22, true);
+
+    if (magic !== "LPF " || animTag !== "ANIM") {
+      throw new Error("Not a recognized DeluxePaint Animation file — expected an 'LPF ' / 'ANIM' signature.");
+    }
+    if (!width || !height || width > 4096 || height > 4096) {
+      throw new Error("Header parsed but dimensions look invalid (" + width + "x" + height + ").");
+    }
+
+    need(70, "header flags");
+    const hasLastDelta = u8[26];
+    if (hasLastDelta) nbRecordsRaw = Math.max(nbRecordsRaw - 1, 0);
+
+    need(70, "frame count / rate");
+    let fps = dv.getUint16(68, true);
+    if (!fps || fps > 240) fps = 10;
+
+    // Bytes 70..127 are 58 bytes of filler, rounding the fixed header to 128
+    // bytes. Immediately after that: 16 palette-cycle "Range" structs (8
+    // bytes each = 128 bytes), then the 256-colour palette (4 bytes each =
+    // 1024 bytes: R,G,B,pad).
+    const cyclesStart = 128;
+    need(cyclesStart + 16 * 8, "cycle ranges");
+    const cycles = [];
+    for (let i = 0; i < 16; i++) {
+      const o = cyclesStart + i * 8;
+      const count = dv.getUint16(o, true);
+      const rate = dv.getUint16(o + 2, true);
+      const flags = dv.getUint16(o + 4, true);
+      const low = u8[o + 6];
+      const high = u8[o + 7];
+      const activeBit = !!(flags & 1);
+      const reverse = !!(flags & 2);
+      // The documented Amiga CRNG convention gates cycling on bit0
+      // ("RNG_ACTIVE"), but real-world DPaint Animation exports are
+      // inconsistent about setting it. A defined rate + a real span is a
+      // more reliable signal in practice.
+      if (high > low && rate > 0) {
+        cycles.push({ count, rate, flags, low, high, reverse, activeBit });
+      }
+    }
+
+    const paletteStart = cyclesStart + 128; // 256
+    need(paletteStart + 256 * 4, "palette");
+    const palette = new Uint8Array(256 * 3);
+    for (let i = 0; i < 256; i++) {
+      const o = paletteStart + i * 4;
+      // On-disk order is (Blue, Green, Red, pad) — confirmed against ffmpeg's
+      // reference ANM decoder (which VLC also uses), not the (Red, Green,
+      // Blue, pad) that the recovered multimedia.cx documentation describes
+      // in plain English. ffmpeg reads each entry as a little-endian 32-bit
+      // ARGB int, which only lines up with real files if red is the third
+      // byte on disk.
+      palette[i * 3 + 0] = u8[o + 2]; // R
+      palette[i * 3 + 1] = u8[o + 1]; // G
+      palette[i * 3 + 2] = u8[o];     // B
+    }
+
+    // Page table: up to 256 entries, 6 bytes each, at pageTableOffset.
+    const MAX_PAGES = 256;
+    need(pageTableOffset + MAX_PAGES * 6, "page table");
+    const pages = [];
+    for (let i = 0; i < MAX_PAGES; i++) {
+      const o = pageTableOffset + i * 6;
+      pages.push({
+        baseRecord: dv.getUint16(o, true),
+        nbRecords: dv.getUint16(o + 2, true),
+        size: dv.getUint16(o + 4, true),
+      });
+    }
+
+    const pageDataBase = pageTableOffset + MAX_PAGES * 6;
+    const recordInfo = [];
+    let pagesUsed = 0;
+
+    for (let pi = 0; pi < MAX_PAGES; pi++) {
+      const p = pages[pi];
+      if (p.nbRecords <= 0) continue;
+      pagesUsed++;
+      const pageStart = pageDataBase + pi * 65536;
+      if (pageStart + 8 + p.nbRecords * 2 > len) continue;
+      const sizeTableStart = pageStart + 8;
+      let cursor = pageStart + 8 + p.nbRecords * 2;
+      for (let k = 0; k < p.nbRecords; k++) {
+        const sz = dv.getUint16(sizeTableStart + k * 2, true);
+        const globalIdx = p.baseRecord + k;
+        recordInfo[globalIdx] = { offset: cursor, size: sz };
+        cursor += sz;
+      }
+    }
+
+    const nbRecords = Math.min(nbRecordsRaw, recordInfo.length || nbRecordsRaw);
+
+    return { width, height, fps, nbRecords, palette, cycles, recordInfo, u8, pagesUsed };
+  }
+
+  // ---------- Single-frame opcode decoder (RLE stream, ported from libavcodec/anm.c) ----------
+
+  function decodeFrame(u8, offset, size, indexBuf, width, height) {
+    if (size < 4) return;
+    const end = offset + size;
+    let p = offset;
+    p += 4; // record type byte, padding byte, 2 reserved bytes
+
+    const total = width * height;
+    let dstPix = 0;
+    let x = 0;
+
+    function doOp(isCopy, pixel, count) {
+      let remaining = width - x;
+      while (count > 0) {
+        let striplen = Math.min(count, remaining);
+        if (isCopy) {
+          const avail = Math.max(0, Math.min(striplen, end - p));
+          if (avail <= 0) return true;
+          indexBuf.set(u8.subarray(p, p + avail), dstPix);
+          p += avail;
+          striplen = avail;
+        } else if (pixel >= 0) {
+          indexBuf.fill(pixel, dstPix, dstPix + striplen);
+        }
+        dstPix += striplen;
+        remaining -= striplen;
+        count -= striplen;
+        if (remaining <= 0) remaining = width;
+        if (dstPix >= total) return true;
+      }
+      x = width - remaining;
+      return false;
+    }
+
+    while (p < end) {
+      const typeByte = u8[p++];
+      let count = typeByte & 0x7F;
+      const type = typeByte >> 7;
+
+      if (count) {
+        if (doOp(type === 0, -1, count)) break;
+      } else if (type === 0) {
+        if (p + 2 > end) break;
+        const cnt = u8[p++];
+        const pixel = u8[p++];
+        if (cnt === 0) continue;
+        if (doOp(false, pixel, cnt)) break;
+      } else {
+        if (p + 2 > end) break;
+        const raw = u8[p] | (u8[p + 1] << 8);
+        p += 2;
+        let count2 = raw & 0x3FFF;
+        const type2 = raw >>> 14;
+        if (count2 === 0) {
+          if (type2 === 0) break;
+          if (type2 === 2) break;
+          continue;
+        } else {
+          let pixel = -1;
+          if (type2 === 3) { if (p >= end) break; pixel = u8[p++]; }
+          if (type2 === 1) count2 += 0x4000;
+          if (doOp(type2 === 2, pixel, count2)) break;
+        }
+      }
+    }
+  }
+
+  // ---------- Palette cycling ----------
+
+  function computeCycledPalette(basePalette, cycles, elapsedSeconds, scratch){
+    const pal = scratch || basePalette.slice();
+    pal.set(basePalette);
+    for (const c of cycles) {
+      const rangeSize = c.high - c.low + 1;
+      const stepsPerSec = c.rate * 60 / 16384;
+      let shift = Math.floor(elapsedSeconds * stepsPerSec) % rangeSize;
+      if (c.reverse) shift = -shift;
+      shift = ((shift % rangeSize) + rangeSize) % rangeSize;
+      if (shift === 0) continue;
+      for (let i = 0; i < rangeSize; i++) {
+        const srcIdx = c.low + ((i - shift) % rangeSize + rangeSize) % rangeSize;
+        const dstIdx = c.low + i;
+        pal[dstIdx * 3] = basePalette[srcIdx * 3];
+        pal[dstIdx * 3 + 1] = basePalette[srcIdx * 3 + 1];
+        pal[dstIdx * 3 + 2] = basePalette[srcIdx * 3 + 2];
+      }
+    }
+    return pal;
+  }
+
+  function buildFramesFromParsed(parsed){
+    const { width, height, recordInfo, u8, nbRecords } = parsed;
+    const frames = [];
+    let indexBuf = new Uint8Array(width * height);
+    for (let i = 0; i < nbRecords; i++) {
+      const rec = recordInfo[i];
+      if (rec && rec.offset + rec.size <= u8.length) {
+        decodeFrame(u8, rec.offset, rec.size, indexBuf, width, height);
+      }
+      frames.push(indexBuf.slice());
+    }
+    return frames;
+  }
+
+  function readFileAsArrayBuffer(file){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error("Couldn't read " + file.name + " from disk."));
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  // ---------- UI wiring ----------
+
+  const drop = document.getElementById('drop');
+  const fileInput = document.getElementById('fileInput');
+  const filenameEl = document.getElementById('filename');
+  const errEl = document.getElementById('err');
+  const playerEl = document.getElementById('player');
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const scrub = document.getElementById('scrub');
+  const frameCount = document.getElementById('frameCount');
+  const playBtn = document.getElementById('playBtn');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const prevTrackBtn = document.getElementById('prevTrackBtn');
+  const nextTrackBtn = document.getElementById('nextTrackBtn');
+  const fpsInput = document.getElementById('fps');
+  const zoomInput = document.getElementById('zoom');
+  const loopInput = document.getElementById('loop');
+  const cycleToggle = document.getElementById('cycleToggle');
+  const staticDurationInput = document.getElementById('staticDuration');
+  const pngBtn = document.getElementById('pngBtn');
+  const led = document.getElementById('led');
+  const ledLabel = document.getElementById('ledLabel');
+  const ledCycle = document.getElementById('ledCycle');
+  const cycleTableEl = document.getElementById('cycleTable');
+  const playlistTableEl = document.getElementById('playlistTable');
+  const clearPlaylistBtn = document.getElementById('clearPlaylistBtn');
+  const nowPlayingEl = document.getElementById('nowPlaying');
+
+  let playlist = [];   // [{ name, width, height, fps, palette, cycles, frames, error }]
+  let curIndex = -1;
+  let state = null;    // alias of playlist[curIndex] when valid
+  let curFrame = 0;
+  let playing = false;
+  let rafId = null;
+  let lastFrameTick = 0;
+  let itemStartTime = 0;   // performance.now() when current track started (drives cycling + dwell timer)
+  let workingPalette = null;
+
+  function showError(msg){
+    errEl.hidden = false;
+    errEl.textContent = msg;
+  }
+  function clearError(){ errEl.hidden = true; }
+
+  async function loadFiles(fileList){
+    clearError();
+    const files = Array.from(fileList).sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric:true}));
+    const wasEmpty = playlist.length === 0;
+    let addedOk = 0, addedErr = 0;
+
+    for (const file of files) {
+      const entry = { name: file.name, size: file.size, error: null };
+      try {
+        const buf = await readFileAsArrayBuffer(file);
+        const parsed = parseANM(buf);
+        const frames = buildFramesFromParsed(parsed);
+        if (frames.length === 0) throw new Error("No valid frames/records found.");
+        Object.assign(entry, {
+          width: parsed.width, height: parsed.height, fps: parsed.fps,
+          palette: parsed.palette, cycles: parsed.cycles, frames,
+        });
+        addedOk++;
+      } catch (e) {
+        entry.error = (e && e.message) || "Couldn't parse this file.";
+        addedErr++;
+      }
+      playlist.push(entry);
+    }
+
+    filenameEl.textContent = playlist.length + ' file' + (playlist.length===1?'':'s') + ' in playlist'
+      + (addedErr ? '  (' + addedErr + ' failed to parse — see list below)' : '');
+
+    if (addedOk === 0 && wasEmpty) {
+      showError("None of the dropped files could be read as DeluxePaint Animation files.");
+    }
+
+    renderPlaylistTable();
+    playerEl.hidden = playlist.length === 0;
+
+    if (wasEmpty) {
+      const firstOk = playlist.findIndex(p => !p.error);
+      if (firstOk >= 0) {
+        startLoop();
+        goToIndex(firstOk, true);
+      }
+    }
+  }
+
+  function renderPlaylistTable(){
+    if (playlist.length === 0) {
+      playlistTableEl.innerHTML = '<div class="none">No files loaded yet.</div>';
+      return;
+    }
+    let html = '<table><tr><th></th><th>File</th><th>Info</th><th></th></tr>';
+    playlist.forEach((p, i) => {
+      const active = i === curIndex;
+      if (p.error) {
+        html += '<tr class="playlist-row error"><td>' + (i+1) + '</td>'
+          + '<td>' + escapeHtml(p.name) + '</td>'
+          + '<td>' + escapeHtml(p.error) + '</td>'
+          + '<td><button class="rm" data-idx="' + i + '" title="Remove">✕</button></td></tr>';
+      } else {
+        const info = p.width + '×' + p.height + ' · ' + p.frames.length + (p.frames.length===1?' frame':' frames')
+          + (p.cycles.length ? ' · ' + p.cycles.length + ' cycle' + (p.cycles.length===1?'':'s') : '');
+        html += '<tr class="playlist-row' + (active?' active':'') + '" data-idx="' + i + '"><td>' + (i+1) + '</td>'
+          + '<td>' + escapeHtml(p.name) + '</td>'
+          + '<td>' + info + '</td>'
+          + '<td><button class="rm" data-idx="' + i + '" title="Remove">✕</button></td></tr>';
+      }
+    });
+    html += '</table>';
+    playlistTableEl.innerHTML = html;
+
+    playlistTableEl.querySelectorAll('tr[data-idx]').forEach(row => {
+      row.addEventListener('click', (e) => {
+        if (e.target.closest('.rm')) return;
+        const idx = parseInt(row.getAttribute('data-idx'), 10);
+        if (!playlist[idx] || playlist[idx].error) return;
+        goToIndex(idx, true);
+      });
+    });
+    playlistTableEl.querySelectorAll('.rm').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        removeFromPlaylist(parseInt(btn.getAttribute('data-idx'), 10));
+      });
+    });
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function removeFromPlaylist(idx){
+    if (idx < 0 || idx >= playlist.length) return;
+    const wasCurrent = idx === curIndex;
+    playlist.splice(idx, 1);
+    if (idx < curIndex) curIndex--;
+    if (playlist.length === 0) {
+      curIndex = -1; state = null; playing = false;
+      playerEl.hidden = true;
+      renderPlaylistTable();
+      return;
+    }
+    if (wasCurrent) {
+      const nextIdx = Math.min(idx, playlist.length - 1);
+      const okIdx = findNextPlayable(nextIdx, 0);
+      if (okIdx >= 0) goToIndex(okIdx, playing);
+      else { state = null; renderPlaylistTable(); }
+    } else {
+      renderPlaylistTable();
+    }
+  }
+
+  clearPlaylistBtn.addEventListener('click', () => {
+    playlist = [];
+    curIndex = -1;
+    state = null;
+    playing = false;
+    playerEl.hidden = true;
+    filenameEl.textContent = '';
+    renderPlaylistTable();
+  });
+
+  function findNextPlayable(fromIdx, dir){
+    if (playlist.length === 0) return -1;
+    for (let step = 0; step < playlist.length; step++) {
+      const idx = ((fromIdx + dir*step) % playlist.length + playlist.length) % playlist.length;
+      if (!playlist[idx].error) return idx;
+    }
+    return -1;
+  }
+
+  function goToIndex(idx, autoplay){
+    if (idx < 0 || idx >= playlist.length || playlist[idx].error) return;
+    curIndex = idx;
+    state = playlist[idx];
+    curFrame = 0;
+    itemStartTime = performance.now();
+    workingPalette = state.palette.slice();
+
+    document.getElementById('mTrack').textContent = (curIndex+1) + ' / ' + playlist.length;
+    document.getElementById('mDim').textContent = state.width + '×' + state.height;
+    document.getElementById('mFrames').textContent = state.frames.length;
+    document.getElementById('mFps').textContent = state.fps;
+    document.getElementById('mCycles').textContent = state.cycles.length;
+    nowPlayingEl.textContent = state.name;
+    fpsInput.value = state.fps;
+
+    renderCycleTable();
+
+    scrub.max = state.frames.length - 1;
+    scrub.value = 0;
+    frameCount.textContent = '1 / ' + state.frames.length;
+
+    const zoom = parseInt(zoomInput.value, 10) || 2;
+    canvas.width = state.width;
+    canvas.height = state.height;
+    canvas.style.width = (state.width * zoom) + 'px';
+    canvas.style.height = (state.height * zoom) + 'px';
+
+    renderPlaylistTable();
+    setPlaying(autoplay !== undefined ? autoplay : playing);
+  }
+
+  function renderCycleTable(){
+    const cycles = state.cycles;
+    if (cycles.length === 0) {
+      cycleTableEl.innerHTML = '<div class="none">No active palette-cycle ranges in this track.</div>';
+      return;
+    }
+    let html = '<table><tr><th>Colours</th><th>Range</th><th>Speed</th><th>Dir</th></tr>';
+    for (const c of cycles) {
+      const stepsPerSec = (c.rate * 60 / 16384).toFixed(2);
+      html += '<tr><td><span class="swatch" style="background:linear-gradient(90deg,'
+        + swatchStops(state.palette, c.low, c.high) + ')"></span></td>'
+        + '<td>' + c.low + '–' + c.high + '</td>'
+        + '<td>' + stepsPerSec + '/sec</td>'
+        + '<td>' + (c.reverse ? '◀ reverse' : '▶ forward') + '</td></tr>';
+    }
+    html += '</table>';
+    cycleTableEl.innerHTML = html;
+  }
+
+  function swatchStops(palette, low, high){
+    const n = high - low + 1;
+    const stops = [];
+    const steps = Math.min(n - 1, 12);
+    for (let i = 0; i <= steps; i++) {
+      const idx = low + Math.round(i * (n - 1) / steps);
+      stops.push('rgb(' + palette[idx*3] + ',' + palette[idx*3+1] + ',' + palette[idx*3+2] + ')');
+    }
+    return stops.join(',');
+  }
+
+  function renderCurrent(){
+    if (!state) return;
+    const { width, height, palette, cycles, frames } = state;
+    const cyclingOn = cycleToggle.checked && cycles.length > 0;
+    let pal = palette;
+    if (cyclingOn) {
+      const elapsed = (performance.now() - itemStartTime) / 1000;
+      pal = computeCycledPalette(palette, cycles, elapsed, workingPalette);
+    }
+    const idx = frames[curFrame];
+    const img = ctx.createImageData(width, height);
+    const data = img.data;
+    for (let p = 0; p < idx.length; p++) {
+      const c = idx[p] * 3;
+      const o = p * 4;
+      data[o] = pal[c];
+      data[o+1] = pal[c+1];
+      data[o+2] = pal[c+2];
+      data[o+3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+    ledCycle.classList.toggle('on', cyclingOn);
+  }
+
+  function renderFrame(i){
+    if (!state) return;
+    i = Math.max(0, Math.min(state.frames.length - 1, i));
+    curFrame = i;
+    scrub.value = i;
+    frameCount.textContent = (i+1) + ' / ' + state.frames.length;
+    renderCurrent();
+  }
+
+  function setPlaying(p){
+    playing = !!p && !!state;
+    playBtn.textContent = playing ? '❚❚ Pause' : '▶ Play';
+    playBtn.disabled = !state;
+    led.classList.toggle('on', playing);
+    ledLabel.textContent = playing ? 'PLAYING' : 'STOPPED';
+    lastFrameTick = performance.now();
+  }
+
+  function advanceTrack(){
+    const dir = 1;
+    let next = curIndex + 1;
+    if (next >= playlist.length || playlist[next].error) {
+      next = findNextPlayable(curIndex + 1, dir);
+    }
+    if (next < 0 || next >= playlist.length) {
+      if (loopInput.checked) {
+        next = findNextPlayable(0, 1);
+      } else {
+        setPlaying(false);
+        return;
+      }
+    }
+    if (next === curIndex || next < 0) {
+      // Only one playable track — just let it keep looping/cycling in place.
+      if (state.frames.length > 1) curFrame = 0;
+      return;
+    }
+    if (next < curIndex && !loopInput.checked) {
+      setPlaying(false);
+      return;
+    }
+    goToIndex(next, true);
+  }
+
+  function startLoop(){
+    if (rafId) cancelAnimationFrame(rafId);
+    lastFrameTick = performance.now();
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function loop(now){
+    if (state && playing) {
+      if (state.frames.length > 1) {
+        const fps = Math.max(1, parseInt(fpsInput.value, 10) || state.fps || 10);
+        const interval = 1000 / fps;
+        if (now - lastFrameTick >= interval) {
+          lastFrameTick = now;
+          const next = curFrame + 1;
+          if (next >= state.frames.length) {
+            if (playlist.filter(p => !p.error).length > 1) {
+              advanceTrack();
+            } else if (loopInput.checked) {
+              curFrame = 0;
+              scrub.value = 0;
+              frameCount.textContent = '1 / ' + state.frames.length;
+            } else {
+              setPlaying(false);
+            }
+          } else {
+            curFrame = next;
+            scrub.value = curFrame;
+            frameCount.textContent = (curFrame+1) + ' / ' + state.frames.length;
+          }
+        }
+      } else {
+        // Static (single-frame, palette-cycled) track: hold for the
+        // configured duration, then move on — but only if there's actually
+        // somewhere else to go.
+        if (playlist.filter(p => !p.error).length > 1) {
+          const holdMs = Math.max(1, parseInt(staticDurationInput.value, 10) || 5) * 1000;
+          if (now - itemStartTime >= holdMs) {
+            advanceTrack();
+          }
+        }
+      }
+    }
+    if (state) renderCurrent();
+    rafId = requestAnimationFrame(loop);
+  }
+
+  drop.addEventListener('click', () => fileInput.click());
+  drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('drag'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('drag'));
+  drop.addEventListener('drop', (e) => {
+    e.preventDefault();
+    drop.classList.remove('drag');
+    const files = e.dataTransfer.files;
+    if (files && files.length) loadFiles(files);
+  });
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files && e.target.files.length) loadFiles(e.target.files);
+    fileInput.value = '';
+  });
+
+  playBtn.addEventListener('click', () => { if (state) setPlaying(!playing); });
+  prevBtn.addEventListener('click', () => { if (state) { setPlaying(false); renderFrame(curFrame - 1); } });
+  nextBtn.addEventListener('click', () => { if (state) { setPlaying(false); renderFrame(curFrame + 1); } });
+  prevTrackBtn.addEventListener('click', () => {
+    const idx = findNextPlayable(curIndex - 1, -1);
+    if (idx >= 0) goToIndex(idx, true);
+  });
+  nextTrackBtn.addEventListener('click', () => {
+    const idx = findNextPlayable(curIndex + 1, 1);
+    if (idx >= 0) goToIndex(idx, true);
+  });
+  scrub.addEventListener('input', () => { if (state) { setPlaying(false); renderFrame(parseInt(scrub.value, 10)); } });
+  zoomInput.addEventListener('change', () => {
+    if (!state) return;
+    const zoom = Math.max(1, Math.min(8, parseInt(zoomInput.value, 10) || 1));
+    canvas.style.width = (state.width * zoom) + 'px';
+    canvas.style.height = (state.height * zoom) + 'px';
+  });
+  pngBtn.addEventListener('click', () => {
+    if (!state) return;
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = 'anm-frame-' + (curFrame+1) + '.png';
+    a.click();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (!state) return;
+    if (e.code === 'Space') { e.preventDefault(); setPlaying(!playing); }
+    else if (e.code === 'ArrowRight') { setPlaying(false); renderFrame(curFrame + 1); }
+    else if (e.code === 'ArrowLeft') { setPlaying(false); renderFrame(curFrame - 1); }
+    else if (e.code === 'BracketRight') { const i = findNextPlayable(curIndex+1,1); if (i>=0) goToIndex(i, true); }
+    else if (e.code === 'BracketLeft') { const i = findNextPlayable(curIndex-1,-1); if (i>=0) goToIndex(i, true); }
+  });
+
+  renderPlaylistTable();
+})();
+</script>
+</body>
+</html>
