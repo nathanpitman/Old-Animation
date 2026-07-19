@@ -1,0 +1,14 @@
+flos1 -nb 
+flos2 -nb 
+flos3 -nb
+-t 7 chair0.lbm
+-nb -t 7 chair1.lbm
+-nb flos4
+-nb flos5
+-nb flos6
+-nb flos7 
+-nb flos8 
+-nb flos9 
+-nb flos10 
+-nb credits
+

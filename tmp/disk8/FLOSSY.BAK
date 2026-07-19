@@ -1,0 +1,3 @@
+echo off
+play flos1.anm -nb flos2.anm -nb flos3.anm -nb -t 7 chair0.lbm -nb -t 7 chair1.lbm -nb flos4.anm -nb flos5.anm -nb flos6.anm -nb flos7.anm -nb flos8.anm -nb flos9.anm -nb flos10.anm -nb credits.anm
+

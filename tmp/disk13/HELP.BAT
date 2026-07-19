@@ -1,0 +1,1 @@
+slide a.tif fyi.tif /m
