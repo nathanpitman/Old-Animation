@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" data-phosphor="amber">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retro Animation Archive</title>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/crt.css">
+<link rel="stylesheet" href="css/carousel.css">
+</head>
+<body>
+
+<!-- SVG filter defs for the CRT barrel-curvature warp (used by .screen) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="dispGradX" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#000"/>
+      <stop offset="50%" stop-color="#808080"/>
+      <stop offset="100%" stop-color="#fff"/>
+    </linearGradient>
+    <linearGradient id="dispGradY" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#000"/>
+      <stop offset="50%" stop-color="#808080"/>
+      <stop offset="100%" stop-color="#fff"/>
+    </linearGradient>
+    <rect id="dispRectX" width="1" height="1" fill="url(#dispGradX)"/>
+    <rect id="dispRectY" width="1" height="1" fill="url(#dispGradY)"/>
+
+    <filter id="crt-barrel" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">
+      <feImage href="#dispRectX" x="0" y="0" width="100%" height="100%" preserveAspectRatio="none" result="imgX"/>
+      <feColorMatrix in="imgX" type="matrix"
+        values="1 0 0 0 0
+                0 0 0 0 0
+                0 0 0 0 0
+                0 0 0 0 1" result="chanX"/>
+      <feImage href="#dispRectY" x="0" y="0" width="100%" height="100%" preserveAspectRatio="none" result="imgY"/>
+      <feColorMatrix in="imgY" type="matrix"
+        values="0 0 0 0 0
+                0 1 0 0 0
+                0 0 0 0 0
+                0 0 0 0 1" result="chanY"/>
+      <feComposite in="chanX" in2="chanY" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="map"/>
+      <feDisplacementMap in="SourceGraphic" in2="map" scale="26" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
+<div class="page">
+  <header class="site-header">
+    <h1>RETRO ANIMATION ARCHIVE</h1>
+    <div class="phosphor-toggle" id="phosphorToggle">
+      <button data-mode="amber" class="active">AMBER</button>
+      <button data-mode="green">GREEN</button>
+      <button data-mode="color">COLOR</button>
+    </div>
+  </header>
+
+  <main class="rig">
+    <section class="monitor-col">
+      <div class="crt">
+        <div class="crt-bezel">
+          <div class="drive-slot"><div class="drive-led" id="driveLed"></div><span>DRV A:</span></div>
+          <div class="screen-wrap">
+            <div class="screen">
+              <canvas id="canvas" width="320" height="200"></canvas>
+              <div class="scanlines"></div>
+              <div class="vignette"></div>
+              <div class="flicker"></div>
+              <div class="chroma-edge"></div>
+              <div class="empty-state" id="emptyState">INSERT A DISK &rarr;</div>
+            </div>
+          </div>
+          <div class="crt-caption">
+            <span id="captionTitle">NO DISK LOADED</span>
+            <span id="captionDims">&mdash;</span>
+          </div>
+        </div>
+
+        <div class="transport">
+          <button class="btn" id="prevFrameBtn" disabled>&#9664; FRAME</button>
+          <button class="btn primary" id="playBtn" disabled>&#9654; PLAY</button>
+          <button class="btn" id="nextFrameBtn" disabled>FRAME &#9654;</button>
+          <label class="loop-toggle"><input type="checkbox" id="loopToggle" checked> LOOP</label>
+          <input type="range" id="scrub" min="0" max="0" value="0" disabled>
+          <span class="framecount" id="frameCount">0 / 0</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="disks-col">
+      <h2>DISK LIBRARY &mdash; CLICK TO INSERT</h2>
+      <div class="carousel" id="carousel"></div>
+
+      <div class="contents-panel" id="contentsPanel" hidden>
+        <div class="contents-title">
+          <span id="contentsDiskLabel">&mdash;</span>
+          <button class="btn small" id="ejectBtn">EJECT</button>
+        </div>
+        <div class="contents-list" id="contentsList"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">Static, dependency-free playback of FLI/FLC, DeluxePaint ANM, and Show Partner F/X GX2/SPS files &mdash; nothing uploaded, nothing built.</footer>
+</div>
+
+<script src="js/decoders/fli.js"></script>
+<script src="js/decoders/anm.js"></script>
+<script src="js/decoders/gx2.js"></script>
+<script src="js/unified-player.js"></script>
+<script src="js/carousel.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

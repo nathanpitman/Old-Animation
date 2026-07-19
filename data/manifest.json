@@ -1,0 +1,197 @@
+{
+  "_readme": "Draft manifest auto-generated from the real files under tmp/disk*. Titles are filename-derived placeholders — edit `label`/`title` freely, this schema is stable either way.",
+  "disks": [
+    {
+      "id": "disk1",
+      "number": 1,
+      "label": "DISK 01",
+      "formatTag": "ANM",
+      "animations": [
+        { "id": "disk1-pl1", "title": "PL1", "format": "anm", "file": "tmp/disk1/PL1.ANM" },
+        { "id": "disk1-pl2", "title": "PL2", "format": "anm", "file": "tmp/disk1/PL2.ANM" },
+        { "id": "disk1-pl3", "title": "PL3", "format": "anm", "file": "tmp/disk1/PL3.ANM" },
+        { "id": "disk1-plint", "title": "PLINT", "format": "anm", "file": "tmp/disk1/PLINT.ANM" },
+        { "id": "disk1-smoke", "title": "SMOKE", "format": "anm", "files": ["tmp/disk1/SMOKE/INTRO.ANM", "tmp/disk1/SMOKE/SMOKE.ANM"] }
+      ]
+    },
+    {
+      "id": "disk4",
+      "number": 4,
+      "label": "DISK 04",
+      "formatTag": "FLI",
+      "animations": [
+        { "id": "disk4-3do", "title": "3DO", "format": "fli", "file": "tmp/disk4/3DO.FLI" },
+        { "id": "disk4-psx2", "title": "PSX2", "format": "fli", "file": "tmp/disk4/PSX2.FLI" },
+        { "id": "disk4-saturn", "title": "SATURN", "format": "fli", "file": "tmp/disk4/SATURN.FLI" }
+      ]
+    },
+    {
+      "id": "disk5",
+      "number": 5,
+      "label": "DISK 05",
+      "formatTag": "ANM",
+      "animations": [
+        { "id": "disk5-cd", "title": "CD", "format": "anm", "file": "tmp/disk5/CD.ANM" }
+      ]
+    },
+    {
+      "id": "disk6",
+      "number": 6,
+      "label": "DISK 06",
+      "formatTag": "ANM",
+      "animations": [
+        { "id": "disk6-count", "title": "COUNT", "format": "anm", "file": "tmp/disk6/COUNT.ANM" },
+        { "id": "disk6-face", "title": "FACE", "format": "anm", "file": "tmp/disk6/FACE.ANM" },
+        { "id": "disk6-plasman", "title": "PLASMAN", "format": "anm", "file": "tmp/disk6/PLASMAN.ANM" },
+        { "id": "disk6-spc2", "title": "SPC2", "format": "anm", "file": "tmp/disk6/SPC2.ANM" }
+      ]
+    },
+    {
+      "id": "disk7",
+      "number": 7,
+      "label": "DISK 07",
+      "formatTag": "FLI",
+      "animations": [
+        { "id": "disk7-spin", "title": "SPIN", "format": "fli", "file": "tmp/disk7/SPIN.FLI" },
+        { "id": "disk7-spin2", "title": "SPIN2", "format": "fli", "file": "tmp/disk7/SPIN2.FLI" }
+      ]
+    },
+    {
+      "id": "disk8",
+      "number": 8,
+      "label": "DISK 08",
+      "formatTag": "ANM",
+      "animations": [
+        { "id": "disk8-brush2", "title": "BRUSH2", "format": "anm", "file": "tmp/disk8/BRUSH2.ANM" },
+        {
+          "id": "disk8-flos", "title": "FLOS (1-10)", "format": "anm",
+          "files": [
+            "tmp/disk8/FLOS1.ANM", "tmp/disk8/FLOS2.ANM", "tmp/disk8/FLOS3.ANM",
+            "tmp/disk8/FLOS4.ANM", "tmp/disk8/FLOS5.ANM", "tmp/disk8/FLOS6.ANM",
+            "tmp/disk8/FLOS7.ANM", "tmp/disk8/FLOS8.ANM", "tmp/disk8/FLOS9.ANM",
+            "tmp/disk8/FLOS10.ANM"
+          ]
+        },
+        { "id": "disk8-food2", "title": "FOOD2", "format": "anm", "file": "tmp/disk8/FOOD2.ANM" },
+        { "id": "disk8-visit", "title": "VISIT", "format": "anm", "file": "tmp/disk8/VISIT.ANM" },
+        { "id": "disk8-zoom", "title": "ZOOM", "format": "anm", "file": "tmp/disk8/ZOOM.ANM" }
+      ]
+    },
+    {
+      "id": "disk9",
+      "number": 9,
+      "label": "DISK 09",
+      "formatTag": "ANM",
+      "animations": [
+        { "id": "disk9-planonpi", "title": "PLANONPI", "format": "anm", "file": "tmp/disk9/PLANONPI.ANM" }
+      ]
+    },
+    {
+      "id": "disk10",
+      "number": 10,
+      "label": "DISK 10",
+      "formatTag": "FLI",
+      "animations": [
+        { "id": "disk10-crash", "title": "CRASH", "format": "fli", "file": "tmp/disk10/CRASH.FLI" }
+      ]
+    },
+    {
+      "id": "disk11",
+      "number": 11,
+      "label": "DISK 11",
+      "formatTag": "GX2",
+      "animations": [
+        { "id": "disk11-lemming", "title": "LEMMING", "format": "gx2", "file": "tmp/disk11/LEM/LEMMING.SPS" },
+        { "id": "disk11-lem2", "title": "LEM2", "format": "gx2", "file": "tmp/disk11/LEM2/LEM2.SPS" },
+        { "id": "disk11-lemintro", "title": "LEMINTRO", "format": "gx2", "file": "tmp/disk11/LEM2/LEMINTRO.SPS" }
+      ]
+    },
+    {
+      "id": "disk12",
+      "number": 12,
+      "label": "DISK 12",
+      "formatTag": "ANM",
+      "animations": [
+        { "id": "disk12-count", "title": "COUNT", "format": "anm", "file": "tmp/disk12/COUNT.ANM" },
+        { "id": "disk12-wfish", "title": "WFISH", "format": "anm", "file": "tmp/disk12/WFISH.ANM" },
+        { "id": "disk12-wfish2", "title": "WFISH2", "format": "anm", "file": "tmp/disk12/WFISH2.ANM" }
+      ]
+    },
+    {
+      "id": "disk14",
+      "number": 14,
+      "label": "DISK 14",
+      "formatTag": "ANM",
+      "animations": [
+        { "id": "disk14-cintro", "title": "CINTRO", "format": "anm", "file": "tmp/disk14/CINTRO.ANM" },
+        { "id": "disk14-comp", "title": "COMP", "format": "anm", "file": "tmp/disk14/COMP.ANM" },
+        { "id": "disk14-intro", "title": "INTRO", "format": "anm", "file": "tmp/disk14/INTRO.ANM" }
+      ]
+    },
+    {
+      "id": "disk15",
+      "number": 15,
+      "label": "DISK 15",
+      "formatTag": "ANM",
+      "animations": [
+        { "id": "disk15-plat2", "title": "PLAT2", "format": "anm", "file": "tmp/disk15/PLAT2.ANM" },
+        { "id": "disk15-plat3", "title": "PLAT3", "format": "anm", "file": "tmp/disk15/PLAT3.ANM" },
+        { "id": "disk15-rings", "title": "RINGS", "format": "anm", "file": "tmp/disk15/RINGS.ANM" },
+        { "id": "disk15-sega", "title": "SEGA", "format": "anm", "file": "tmp/disk15/SEGA.ANM" },
+        { "id": "disk15-sonlo", "title": "SONLO", "format": "anm", "file": "tmp/disk15/SONLO.ANM" }
+      ]
+    },
+    {
+      "id": "disk16",
+      "number": 16,
+      "label": "DISK 16",
+      "formatTag": "ANM",
+      "animations": [
+        { "id": "disk16-plas3", "title": "PLAS3", "format": "anm", "file": "tmp/disk16/PLAS3.ANM" },
+        { "id": "disk16-plas4", "title": "PLAS4", "format": "anm", "file": "tmp/disk16/PLAS4.ANM" },
+        { "id": "disk16-plas41", "title": "PLAS41", "format": "anm", "file": "tmp/disk16/PLAS41.ANM" },
+        { "id": "disk16-plas42", "title": "PLAS42", "format": "anm", "file": "tmp/disk16/PLAS42.ANM" },
+        { "id": "disk16-plas43", "title": "PLAS43", "format": "anm", "file": "tmp/disk16/PLAS43.ANM" },
+        { "id": "disk16-plas5", "title": "PLAS5", "format": "anm", "file": "tmp/disk16/PLAS5.ANM" }
+      ]
+    },
+    {
+      "id": "disk17",
+      "number": 17,
+      "label": "DISK 17",
+      "formatTag": "GX2",
+      "animations": [
+        { "id": "disk17-stage", "title": "STAGE", "format": "gx2", "file": "tmp/disk17/STAGE.SPS" }
+      ]
+    },
+    {
+      "id": "disk19",
+      "number": 19,
+      "label": "DISK 19",
+      "formatTag": "FLI",
+      "animations": [
+        { "id": "disk19-mix2", "title": "MIX2", "format": "fli", "file": "tmp/disk19/MIX2.FLI" },
+        { "id": "disk19-wahay", "title": "WAHAY", "format": "fli", "file": "tmp/disk19/WAHAY.FLI" }
+      ]
+    },
+    {
+      "id": "disk20",
+      "number": 20,
+      "label": "DISK 20",
+      "formatTag": "ANM",
+      "animations": [
+        { "id": "disk20-stint", "title": "STINT", "format": "anm", "file": "tmp/disk20/STINT.ANM" }
+      ]
+    },
+    {
+      "id": "disk21",
+      "number": 21,
+      "label": "DISK 21",
+      "formatTag": "ANM",
+      "animations": [
+        { "id": "disk21-sp1", "title": "SP1", "format": "anm", "file": "tmp/disk21/SP1.ANM" },
+        { "id": "disk21-sptnk", "title": "SPTNK", "format": "anm", "file": "tmp/disk21/SPTNK.ANM" }
+      ]
+    }
+  ]
+}
