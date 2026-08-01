@@ -1,14 +1,12 @@
 /* ---------- floppy disk carousel ---------- */
 
 .carousel {
-  display: flex;
-  gap: 16px;
-  overflow-x: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 108px);
+  justify-content: start;
+  gap: 18px 16px;
   padding: 10px 6px 18px;
-  scroll-snap-type: x proximity;
 }
-.carousel::-webkit-scrollbar { height: 8px; }
-.carousel::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
 
 .carousel.has-active .floppy:not(.active) {
   opacity: .35;
@@ -16,8 +14,6 @@
 }
 
 .floppy {
-  scroll-snap-align: start;
-  flex: 0 0 auto;
   width: 108px;
   background: none;
   border: none;
