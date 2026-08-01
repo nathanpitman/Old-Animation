@@ -86,6 +86,11 @@ body {
   margin: 0;
 }
 
+.site-header h1 .years {
+  color: var(--ink-faint);
+  margin-left: 4px;
+}
+
 .site-header .strap {
   font-family: var(--hand);
   font-size: 23px;
