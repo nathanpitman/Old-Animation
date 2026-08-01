@@ -1,57 +1,68 @@
-/* ---------- CRT monitor shell ---------- */
+/* ---------- cream 90s CRT: chunky moulded bezel ---------- */
 
-.crt {
-  background: linear-gradient(180deg, #2b2b27, #191916 70%, #111110);
-  border-radius: 20px;
-  padding: 20px 20px 16px;
-  border: 1px solid #000;
-  box-shadow:
-    0 30px 60px -25px rgba(0,0,0,.8),
-    inset 0 1px 0 rgba(255,255,255,.06),
-    inset 0 -6px 14px rgba(0,0,0,.6);
+.monitor {
+  --bezel-side: 30px;
+  --bezel-top: 28px;
+  --chin: 18px;
+
   position: relative;
+  padding: var(--bezel-top) var(--bezel-side) var(--chin);
+  border-radius: 26px 26px 30px 30px;
+  background:
+    linear-gradient(158deg, var(--plastic-hi) 0%, var(--plastic) 42%, var(--plastic-lo) 100%);
+  box-shadow:
+    /* moulding highlight along the top edge */
+    inset 0 2px 0 rgba(255, 255, 255, .85),
+    inset 0 -3px 0 rgba(120, 104, 70, .35),
+    inset 3px 0 0 rgba(255, 255, 255, .3),
+    inset -3px 0 0 rgba(120, 104, 70, .18),
+    0 26px 40px -28px rgba(70, 58, 34, .55);
 }
 
-.crt-bezel { position: relative; }
+/* the yellowed-plastic gradient that old cream cases pick up */
+.monitor::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(200deg, transparent 40%, rgba(186, 148, 74, .16) 100%);
+}
 
-.drive-slot {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--chrome);
-  font-size: 9px;
-  letter-spacing: 1px;
-  color: #8a8a7e;
-  padding: 0 4px 10px;
+/* On narrow screens the set is bigger than the viewport: the bezel runs off
+   both edges so you only ever see the middle of the monitor. */
+@media (max-width: 760px) {
+  .monitor {
+    --bezel-side: 52px;
+    --bezel-top: 34px;
+    margin-inline: calc(50% - 50vw - 34px);
+    border-radius: 0;
+  }
 }
-.drive-led {
-  width: 7px; height: 7px; border-radius: 50%;
-  background: #3a2200;
-  box-shadow: 0 0 4px rgba(0,0,0,.6) inset;
-  transition: background .2s, box-shadow .2s;
-}
-.drive-led.on {
-  background: var(--phosphor);
-  box-shadow: 0 0 8px var(--phosphor), 0 0 3px var(--phosphor);
-}
+
+/* ---------- screen recess ---------- */
 
 .screen-wrap {
-  background: #000;
-  border-radius: 10px;
-  padding: 16px;
-  box-shadow: inset 0 0 0 2px #000, inset 0 0 46px rgba(0,0,0,.9);
+  position: relative;
+  background: #14150f;
+  border-radius: 8px;
+  padding: 14px;
+  box-shadow:
+    /* deep moulded step around the tube */
+    0 0 0 3px rgba(120, 104, 70, .34),
+    0 0 0 4px rgba(255, 255, 255, .5),
+    inset 0 3px 10px rgba(0, 0, 0, .8),
+    inset 0 -1px 0 rgba(255, 255, 255, .06);
 }
 
 .screen {
   position: relative;
   overflow: hidden;
-  background: #030402;
-  border-radius: 14px / 10px;
+  background: #1a1c15;
+  border-radius: 16px / 11px;
   width: 100%;
   aspect-ratio: 4 / 3;
   filter: url(#crt-barrel);
-  box-shadow: 0 0 34px var(--phosphor-glow);
-  transition: box-shadow .4s ease;
 }
 
 .screen canvas {
@@ -70,14 +81,21 @@
   position: absolute; inset: 0; pointer-events: none;
   background: repeating-linear-gradient(180deg,
     rgba(0,0,0,0) 0px, rgba(0,0,0,0) 1px,
-    rgba(0,0,0,.24) 2px, rgba(0,0,0,0) 3px);
+    rgba(0,0,0,.22) 2px, rgba(0,0,0,0) 3px);
   mix-blend-mode: multiply;
 }
 
 /* vignette */
 .vignette {
   position: absolute; inset: 0; pointer-events: none;
-  box-shadow: inset 0 0 70px 16px rgba(0,0,0,.8);
+  box-shadow: inset 0 0 60px 14px rgba(0,0,0,.78);
+}
+
+/* daylight sheen on the glass — a cream room reflected in a dark tube */
+.glass {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(148deg, rgba(255,252,240,.13) 0%, rgba(255,252,240,.04) 26%, transparent 46%);
+  mix-blend-mode: screen;
 }
 
 /* flicker */
@@ -96,12 +114,12 @@
 .chroma-edge {
   position: absolute; inset: 0; pointer-events: none;
   mix-blend-mode: screen;
-  opacity: .35;
+  opacity: .28;
   -webkit-mask-image: radial-gradient(ellipse at center, transparent 62%, #000 96%);
   mask-image: radial-gradient(ellipse at center, transparent 62%, #000 96%);
   background:
-    linear-gradient(90deg, rgba(255,40,40,.55) 0%, transparent 6%, transparent 94%, rgba(80,220,255,.55) 100%),
-    linear-gradient(180deg, rgba(255,40,40,.35) 0%, transparent 6%, transparent 94%, rgba(80,220,255,.35) 100%);
+    linear-gradient(90deg, rgba(255,40,40,.5) 0%, transparent 6%, transparent 94%, rgba(80,220,255,.5) 100%),
+    linear-gradient(180deg, rgba(255,40,40,.3) 0%, transparent 6%, transparent 94%, rgba(80,220,255,.3) 100%);
 }
 
 .empty-state[hidden] { display: none; }
@@ -109,42 +127,193 @@
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
   font-family: var(--chrome);
-  font-size: 11px;
+  font-size: 10px;
+  line-height: 1.9;
   letter-spacing: 1px;
   color: var(--phosphor-dim);
+  text-shadow: 0 0 10px rgba(255, 196, 107, .35);
   text-align: center;
-  padding: 0 20px;
+  padding: 0 26px;
 }
 
-.crt-caption {
-  display: flex; justify-content: space-between;
-  font-size: 13px; color: #8a8a7e; letter-spacing: .06em; text-transform: uppercase;
-  padding: 10px 4px 0;
-}
-.crt-caption span:first-child { color: var(--phosphor); }
+/* ---------- chin: moulded badge, drive, controls ---------- */
 
-/* ---------- transport ---------- */
+.chin {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px 16px;
+  padding: 14px 2px 4px;
+}
+
+/* moulded brand text, pressed into the plastic */
+.badge {
+  font-family: var(--chrome);
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  color: rgba(120, 104, 70, .55);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .75);
+  white-space: nowrap;
+}
+
+.caption {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  font-size: 15px;
+  line-height: 1.1;
+  color: var(--ink-dim);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  padding-bottom: 4px;
+}
+.caption > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.caption #captionTitle { color: var(--ink); flex: 1 1 auto; }
+.caption #captionDims { flex: 0 1 auto; }
+
+/* drive slot moulded into the chin */
+.drive {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.drive-slot {
+  width: 62px; height: 8px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #55503f, #302c22);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, .8),
+    0 1px 0 rgba(255, 255, 255, .7);
+}
+.drive-led {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #7a5b52;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .5), 0 1px 0 rgba(255, 255, 255, .6);
+  transition: background .2s, box-shadow .2s;
+}
+.drive-led.on {
+  background: var(--led);
+  box-shadow: 0 0 7px rgba(214, 69, 47, .9), inset 0 -1px 2px rgba(0, 0, 0, .35);
+}
+
+/* ---------- minimal icon transport ---------- */
 
 .transport {
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  margin-top: 16px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
-.transport input[type="range"] {
-  flex: 1; min-width: 120px;
-  accent-color: var(--phosphor);
+
+.icon-btn {
+  --size: 30px;
+  width: var(--size);
+  height: var(--size);
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background .16s ease, color .16s ease, transform .1s ease;
 }
-.loop-toggle {
-  color: var(--ink-dim); font-size: 15px; display: flex; align-items: center; gap: 5px; white-space: nowrap;
+.icon-btn svg { width: 15px; height: 15px; display: block; fill: currentColor; }
+.icon-btn:hover:not(:disabled) { background: rgba(90, 74, 42, .13); }
+.icon-btn:active:not(:disabled) { transform: scale(.92); }
+.icon-btn:disabled { color: var(--ink-faint); cursor: default; }
+
+/* play/pause reads as the one primary control without shouting */
+.icon-btn.play {
+  --size: 38px;
+  color: #fff;
+  background: var(--disk-blue);
+  box-shadow: 0 1px 2px rgba(31, 63, 117, .5);
 }
-.loop-toggle input { accent-color: var(--phosphor); }
+.icon-btn.play svg { width: 17px; height: 17px; }
+.icon-btn.play:hover:not(:disabled) { background: var(--disk-blue-hi); }
+.icon-btn.play:disabled { background: rgba(120, 104, 70, .22); color: rgba(255, 255, 255, .65); box-shadow: none; }
+
+/* one button, two glyphs */
+.icon-btn.play .i-pause,
+.icon-btn.play.is-playing .i-play { display: none; }
+.icon-btn.play.is-playing .i-pause { display: block; }
+
+.icon-btn.toggle[aria-pressed="true"] { color: var(--disk-blue); background: rgba(47, 95, 168, .14); }
+
 .framecount {
-  color: var(--ink-dim); font-size: 15px; min-width: 78px; text-align: right; white-space: nowrap;
+  font-size: 15px;
+  color: var(--ink-dim);
+  letter-spacing: .06em;
+  white-space: nowrap;
+  min-width: 74px;
+  text-align: right;
+}
+
+/* thin recessed scrub line */
+.scrub {
+  grid-column: 1 / -1;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 14px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  --p: 0%;
+}
+.scrub:disabled { cursor: default; --p: 0%; }
+
+.scrub::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background:
+    linear-gradient(90deg, var(--disk-blue) var(--p), rgba(90, 74, 42, .2) var(--p));
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, .28), 0 1px 0 rgba(255, 255, 255, .6);
+}
+.scrub::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px; height: 12px;
+  margin-top: -4px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--disk-blue);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .4);
+}
+.scrub:disabled::-webkit-slider-thumb { background: var(--ink-faint); }
+
+.scrub::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(90, 74, 42, .2);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, .28);
+}
+.scrub::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--disk-blue); }
+.scrub::-moz-range-thumb {
+  width: 12px; height: 12px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--disk-blue);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .4);
+}
+.scrub:disabled::-moz-range-thumb { background: var(--ink-faint); }
+
+@media (max-width: 560px) {
+  .chin { gap: 8px; }
+  .caption { flex-direction: column; gap: 2px; font-size: 14px; }
+  .badge { display: none; }
+  .drive-slot { width: 30px; }
+  .framecount { min-width: 0; font-size: 14px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .flicker, .drive-led.on { animation: none; }
+  .flicker { animation: none; }
 }

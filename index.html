@@ -3,14 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f3ead6">
 <title>Retro Animation Archive</title>
-<link rel="stylesheet" href="css/base.css?v=3">
-<link rel="stylesheet" href="css/crt.css?v=3">
-<link rel="stylesheet" href="css/carousel.css?v=3">
+<link rel="stylesheet" href="css/base.css?v=4">
+<link rel="stylesheet" href="css/crt.css?v=4">
+<link rel="stylesheet" href="css/carousel.css?v=4">
 </head>
 <body>
 
-<!-- SVG filter defs for the CRT barrel-curvature warp (used by .screen) -->
+<!-- SVG defs: the CRT barrel-curvature warp, plus the transport icon glyphs -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
     <linearGradient id="dispGradX" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -42,56 +43,101 @@
       <feComposite in="chanX" in2="chanY" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="map"/>
       <feDisplacementMap in="SourceGraphic" in2="map" scale="26" xChannelSelector="R" yChannelSelector="G"/>
     </filter>
+
+    <!-- transport glyphs -->
+    <g id="ic-prev"><path d="M6 5h2v14H6zM19 5v14L9 12z"/></g>
+    <g id="ic-next"><path d="M16 5h2v14h-2zM5 5l10 7-10 7z"/></g>
+    <g id="ic-play"><path d="M7 4.5v15l13-7.5z"/></g>
+    <g id="ic-pause"><path d="M6.5 4.5h4v15h-4zM13.5 4.5h4v15h-4z"/></g>
+    <g id="ic-loop"><path d="M7 6h9V3.2L21 7l-5 3.8V8H8.6v3.4L5 8.6 7 7zM17 18H8v2.8L3 17l5-3.8V16h7.4v-3.4L19 15.4 17 17z"/></g>
+    <g id="ic-eject"><path d="M12 4 4 13.2h16zM4.6 16.4h14.8v3.2H4.6z"/></g>
+    <g id="ic-chev-l"><path d="M15.2 4.6 7.8 12l7.4 7.4 1.6-1.7L11.1 12l5.7-5.7z"/></g>
+    <g id="ic-chev-r"><path d="M8.8 4.6 16.2 12l-7.4 7.4-1.6-1.7L12.9 12 7.2 6.3z"/></g>
   </defs>
 </svg>
 
 <div class="page">
   <header class="site-header">
     <h1>RETRO ANIMATION ARCHIVE</h1>
+    <p class="strap">what was on the disks</p>
   </header>
 
   <main class="rig">
     <section class="monitor-col">
-      <div class="crt">
-        <div class="crt-bezel">
-          <div class="drive-slot"><div class="drive-led" id="driveLed"></div><span>DRV A:</span></div>
-          <div class="screen-wrap">
-            <div class="screen">
-              <canvas id="canvas" width="320" height="200"></canvas>
-              <div class="scanlines"></div>
-              <div class="vignette"></div>
-              <div class="flicker"></div>
-              <div class="chroma-edge"></div>
-              <div class="empty-state" id="emptyState">INSERT A DISK &rarr;</div>
-            </div>
-          </div>
-          <div class="crt-caption">
-            <span id="captionTitle">NO DISK LOADED</span>
-            <span id="captionDims">&mdash;</span>
+      <div class="monitor">
+        <div class="screen-wrap">
+          <div class="screen">
+            <canvas id="canvas" width="320" height="200"></canvas>
+            <div class="scanlines"></div>
+            <div class="vignette"></div>
+            <div class="flicker"></div>
+            <div class="chroma-edge"></div>
+            <div class="glass"></div>
+            <div class="empty-state" id="emptyState">PICK A DISK<br>PRESS IT IN</div>
           </div>
         </div>
 
-        <div class="transport">
-          <button class="btn" id="prevFrameBtn" disabled>&#9664; FRAME</button>
-          <button class="btn primary" id="playBtn" disabled>&#9654; PLAY</button>
-          <button class="btn" id="nextFrameBtn" disabled>FRAME &#9654;</button>
-          <label class="loop-toggle"><input type="checkbox" id="loopToggle" checked> LOOP</label>
-          <input type="range" id="scrub" min="0" max="0" value="0" disabled>
+        <div class="chin">
+          <div class="caption">
+            <span id="captionTitle">NO DISK LOADED</span>
+            <span id="captionDims">&mdash;</span>
+          </div>
+
+          <input class="scrub" type="range" id="scrub" min="0" max="0" value="0" disabled
+                 aria-label="Scrub through frames">
+
+          <div class="drive">
+            <span class="badge">ARCHIVE&nbsp;1400</span>
+            <div class="drive-slot"></div>
+            <div class="drive-led" id="driveLed"></div>
+          </div>
+
+          <div class="transport">
+            <button class="icon-btn" id="prevFrameBtn" disabled title="Previous frame" aria-label="Previous frame">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-prev"/></svg>
+            </button>
+            <button class="icon-btn play" id="playBtn" disabled title="Play" aria-label="Play">
+              <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-play"/></svg>
+              <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-pause"/></svg>
+            </button>
+            <button class="icon-btn" id="nextFrameBtn" disabled title="Next frame" aria-label="Next frame">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-next"/></svg>
+            </button>
+            <button class="icon-btn toggle" id="loopToggle" aria-pressed="true" title="Loop" aria-label="Loop">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-loop"/></svg>
+            </button>
+            <button class="icon-btn" id="ejectBtn" disabled title="Eject disk" aria-label="Eject disk">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-eject"/></svg>
+            </button>
+          </div>
+
           <span class="framecount" id="frameCount">0 / 0</span>
         </div>
       </div>
     </section>
 
-    <section class="disks-col">
-      <h2>DISK LIBRARY &mdash; CLICK TO INSERT</h2>
-      <div class="carousel" id="carousel"></div>
+    <section class="library">
+      <h2>the disk caddy</h2>
 
-      <div class="contents-panel" id="contentsPanel" hidden>
-        <div class="contents-title">
-          <span id="contentsDiskLabel">&mdash;</span>
-          <button class="btn small" id="ejectBtn">EJECT</button>
-        </div>
-        <div class="contents-list" id="contentsList"></div>
+      <div class="disk-stage">
+        <button class="nav-btn" id="prevDiskBtn" title="Previous disk" aria-label="Previous disk">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-chev-l"/></svg>
+        </button>
+        <div class="disk-holder" id="diskHolder"></div>
+        <button class="nav-btn" id="nextDiskBtn" title="Next disk" aria-label="Next disk">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-chev-r"/></svg>
+        </button>
+      </div>
+
+      <div class="caddy">
+        <div class="caddy-slots" id="caddySlots"></div>
+        <div class="caddy-front"></div>
+      </div>
+      <p class="caddy-count" id="caddyCount"></p>
+
+      <div class="postit" id="postit" hidden>
+        <h3 class="postit-title" id="postitTitle">&mdash;</h3>
+        <ul class="postit-list" id="contentsList"></ul>
       </div>
     </section>
   </main>
@@ -99,11 +145,11 @@
   <footer class="site-footer">Static, dependency-free playback of FLI/FLC, DeluxePaint ANM, and Show Partner F/X GX2/SPS files &mdash; nothing uploaded, nothing built.</footer>
 </div>
 
-<script src="js/decoders/fli.js?v=3"></script>
-<script src="js/decoders/anm.js?v=3"></script>
-<script src="js/decoders/gx2.js?v=3"></script>
-<script src="js/unified-player.js?v=3"></script>
-<script src="js/carousel.js?v=3"></script>
-<script src="js/app.js?v=3"></script>
+<script src="js/decoders/fli.js?v=4"></script>
+<script src="js/decoders/anm.js?v=4"></script>
+<script src="js/decoders/gx2.js?v=4"></script>
+<script src="js/unified-player.js?v=4"></script>
+<script src="js/carousel.js?v=4"></script>
+<script src="js/app.js?v=4"></script>
 </body>
 </html>

@@ -1,192 +1,436 @@
-/* ---------- floppy disk carousel ---------- */
+/* ---------- disk caddy: one 3.5" disk out front, the rest filed behind ---------- */
 
-.carousel {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, 108px);
-  justify-content: start;
-  gap: 18px 16px;
-  padding: 10px 6px 18px;
-}
-
-.carousel.has-active .floppy:not(.active) {
-  opacity: .35;
-  filter: grayscale(.6);
-}
-
-.floppy {
-  width: 108px;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  font-family: var(--mono);
-  color: var(--ink);
-  transition: opacity .3s ease, filter .3s ease, transform .25s ease;
-}
-.floppy:hover .floppy-body { transform: translateY(-3px); box-shadow: 0 8px 14px rgba(0,0,0,.5); }
-.floppy:focus-visible { outline: 2px solid var(--phosphor); outline-offset: 3px; }
-
-.floppy-body {
-  position: relative;
-  width: 108px;
-  height: 108px;
-  background: linear-gradient(155deg, #2c2c2c, #1a1a1a 60%, #111);
-  border-radius: 3px;
-  box-shadow: 0 4px 8px rgba(0,0,0,.45), inset 0 0 0 1px #000;
-  transition: transform .2s ease, box-shadow .2s ease;
-}
-
-/* notched top-left corner, classic 3.5" shape */
-.floppy-body::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0;
-  width: 22px; height: 14px;
-  background: var(--bg);
-  clip-path: polygon(0 0, 100% 0, 0 100%);
-}
-
-/* metal shutter */
-.floppy-shutter {
-  position: absolute;
-  left: 10px; right: 10px; top: 8px;
-  height: 30px;
-  background: linear-gradient(180deg, #c9c9ca, #8f9092 55%, #6c6d6f);
-  border-radius: 1px;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 -2px 3px rgba(0,0,0,.35);
-}
-.floppy-shutter::after {
-  content: "";
-  position: absolute;
-  right: 8px; top: 6px; bottom: 6px;
-  width: 34%;
-  background: #3a3a3c;
-  border-radius: 1px;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,.6);
-}
-
-/* write-protect notch */
-.floppy-body .wp-notch {
-  position: absolute;
-  right: 9px; top: -1px;
-  width: 8px; height: 5px;
-  background: #050505;
-  border-radius: 0 0 2px 2px;
-}
-
-/* paper label — hand-written sticker feel */
-.floppy-label {
-  position: absolute;
-  left: 9px; right: 9px; bottom: 10px;
-  top: 46px;
-  background: #ded9c4;
-  border: 1px solid #b8b29a;
-  border-radius: 1px;
-  transform: rotate(-0.6deg);
-  box-shadow: 0 1px 2px rgba(0,0,0,.3);
-  padding: 6px 6px 4px;
+.library {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.library h2 {
+  font-family: var(--hand);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--ink-dim);
+  margin: 0 0 10px;
+  transform: rotate(-.8deg);
+  align-self: flex-start;
+}
+
+/* ---------- the disk on show ---------- */
+
+.disk-stage {
+  display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 10px;
+  width: 100%;
+}
+
+.disk-holder {
+  flex: 0 0 auto;
+  perspective: 900px;
+}
+
+.nav-btn {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--paper-edge);
+  border-radius: 50%;
+  background: linear-gradient(180deg, #fbf5e6, var(--paper-2));
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .8) inset, 0 2px 4px -2px rgba(80, 66, 38, .5);
+  transition: transform .12s ease, background .16s ease;
+}
+.nav-btn svg { width: 15px; height: 15px; fill: currentColor; display: block; }
+.nav-btn:hover { background: #fffaf0; }
+.nav-btn:active { transform: scale(.94); }
+
+/* ---------- the disk itself ---------- */
+
+.disk {
+  --dw: min(212px, 54vw);
+  position: relative;
+  width: var(--dw);
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  filter: drop-shadow(0 10px 14px rgba(70, 58, 34, .35));
+  transition: transform .18s ease, filter .18s ease;
+}
+.disk:hover { transform: translateY(-4px); filter: drop-shadow(0 16px 18px rgba(70, 58, 34, .4)); }
+.disk:active { transform: translateY(-1px); }
+
+.disk-shell {
+  display: block;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 90 / 94;
+  background:
+    linear-gradient(152deg, #5182cd 0%, #2f5fa8 38%, #27528f 70%, #1d3d71 100%);
+  /* the chamfered top-right corner every 3.5" disk has */
+  clip-path: polygon(
+    0 4px, 4px 0,
+    calc(100% - 22px) 0, 100% 22px,
+    100% calc(100% - 4px), calc(100% - 4px) 100%,
+    4px 100%, 0 calc(100% - 4px));
+}
+
+/* moulded sheen + the faint rim you get on injected plastic */
+.disk-shell::before {
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, .22) 0%, rgba(255, 255, 255, .05) 22%, transparent 45%),
+    linear-gradient(0deg, rgba(0, 0, 0, .22), transparent 30%);
+}
+.disk-shell::after {
+  content: "";
+  position: absolute; inset: 3px;
+  border: 1px solid rgba(255, 255, 255, .13);
+  border-radius: 2px;
+}
+
+/* insertion arrow, embossed top-left */
+.disk-arrow {
+  position: absolute;
+  left: 7%; top: 6.5%;
+  width: 10%; height: 12%;
+  background: rgba(255, 255, 255, .3);
+  clip-path: polygon(50% 0, 100% 46%, 72% 46%, 72% 100%, 28% 100%, 28% 46%, 0 46%);
+}
+
+/* sprung metal shutter */
+.disk-shutter {
+  position: absolute;
+  top: 7.5%; right: 9%;
+  width: 47%; height: 20%;
+  background: linear-gradient(180deg, #eceef1 0%, #c3c7cd 42%, #9ba0a7 58%, #cdd1d6 100%);
+  border-radius: 1px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .95),
+    inset 0 -2px 3px rgba(0, 0, 0, .3),
+    0 1px 2px rgba(0, 0, 0, .35);
+}
+.disk-shutter::before {
+  content: "";
+  position: absolute;
+  left: 13%; top: 24%; bottom: 15%;
+  width: 42%;
+  background: #1d2127;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .9);
+}
+.disk-shutter::after {
+  content: "";
+  position: absolute;
+  right: 7%; top: 16%; bottom: 16%;
+  width: 7%;
+  background: linear-gradient(90deg, rgba(255, 255, 255, .8), rgba(0, 0, 0, .3));
+  border-radius: 1px;
+}
+
+/* handwritten paper label */
+.disk-label {
+  position: absolute;
+  left: 7%; right: 7%;
+  top: 33%; bottom: 7%;
+  background: linear-gradient(178deg, #fffdf4, #f5efdd);
+  border-radius: 2px;
+  transform: rotate(-.9deg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(0, 0, 0, .06);
+  padding: 9% 8% 6%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
   overflow: hidden;
 }
-.floppy-label::before {
+
+.disk-num {
+  position: relative;
+  font-family: var(--hand);
+  font-weight: 700;
+  font-size: calc(var(--dw) * .175);
+  line-height: 1;
+  color: #23366d;
+  letter-spacing: .5px;
+  transform: rotate(-1.2deg);
+}
+.disk-sub {
+  position: relative;
+  font-family: var(--hand);
+  font-weight: 500;
+  font-size: calc(var(--dw) * .092);
+  line-height: 1.15;
+  margin-top: calc(var(--dw) * .03);
+  color: #4a5a86;
+  transform: rotate(-.6deg);
+}
+
+/* rubber stamp that appears once the disk is in the drive */
+.disk-stamp {
+  position: absolute;
+  right: 8%; bottom: 9%;
+  font-family: var(--chrome);
+  font-size: calc(var(--dw) * .038);
+  letter-spacing: 1px;
+  color: rgba(190, 62, 40, .8);
+  border: 2px solid rgba(190, 62, 40, .65);
+  border-radius: 3px;
+  padding: 4px 5px;
+  transform: rotate(-9deg);
+  opacity: 0;
+  transition: opacity .25s ease;
+  pointer-events: none;
+}
+.disk.inserted .disk-stamp { opacity: 1; }
+
+/* flipping between disks */
+.disk.from-right { animation: flip-in-right .28s ease-out both; }
+.disk.from-left  { animation: flip-in-left  .28s ease-out both; }
+@keyframes flip-in-right {
+  from { opacity: 0; transform: translateX(26px) rotateY(-16deg); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes flip-in-left {
+  from { opacity: 0; transform: translateX(-26px) rotateY(16deg); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* slotting into the drive */
+.disk.inserting { animation: insert-disk .55s cubic-bezier(.45, 0, .3, 1) both; }
+@keyframes insert-disk {
+  0%   { transform: translateY(0) scale(1); }
+  45%  { transform: translateY(-16px) scale(.97); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* ---------- the caddy the disks are filed in ---------- */
+
+.caddy {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  margin-top: -10px;
+  padding: 0 10px;
+}
+
+.caddy-slots {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  /* keeps the first disks reachable once the rail overflows and scrolls */
+  justify-content: safe center;
+  gap: 5px;
+  padding: 12px 10px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+.caddy-slots::-webkit-scrollbar { height: 5px; }
+.caddy-slots::-webkit-scrollbar-thumb { background: rgba(120, 104, 70, .35); border-radius: 3px; }
+
+/* each filed disk, seen edge-on */
+.caddy-disk {
+  flex: 0 0 auto;
+  position: relative;
+  width: 23px;
+  height: 62px;
+  padding: 0;
+  border: 0;
+  border-radius: 2px 2px 0 0;
+  background: linear-gradient(90deg, #4d7fca 0%, #2f5fa8 42%, #24508f 78%, #1b396a 100%);
+  box-shadow: 1px 0 2px rgba(30, 40, 70, .35);
+  cursor: pointer;
+  transition: transform .2s ease, filter .2s ease;
+}
+.caddy-disk::before {
   content: "";
   position: absolute;
-  left: 6px; right: 6px; top: 21px;
-  height: 1px;
-  background: repeating-linear-gradient(90deg, #a89f80 0 4px, transparent 4px 7px);
+  left: 2px; right: 2px; top: 5px;
+  height: 9px;
+  background: linear-gradient(180deg, #d9dde2, #a5aab1);
 }
-.floppy-label .hand-title {
-  font-family: var(--mono);
-  font-size: 17px;
+.caddy-disk .tab {
+  position: absolute;
+  left: 2px; right: 2px; top: 19px;
+  height: 21px;
+  background: linear-gradient(180deg, #fffdf4, #f2ecda);
+  font-family: var(--hand);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 21px;
+  color: #23366d;
+  text-align: center;
+}
+.caddy-disk:hover { transform: translateY(-5px); }
+.caddy-disk.current {
+  transform: translateY(-13px);
+  filter: brightness(1.12);
+}
+.caddy-disk.current::after {
+  content: "";
+  position: absolute;
+  left: 50%; bottom: -9px;
+  width: 4px; height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--ink-dim);
+}
+
+/* the front wall of the caddy, printed over the bottom of the disks */
+.caddy-front {
+  position: relative;
+  height: 30px;
+  margin: -6px 0 0;
+  border-radius: 3px 3px 8px 8px;
+  background:
+    linear-gradient(180deg, rgba(232, 224, 203, .96) 0%, rgba(205, 194, 167, .97) 55%, rgba(178, 166, 138, .98) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .85),
+    inset 0 -2px 0 rgba(120, 104, 70, .3),
+    0 10px 16px -12px rgba(70, 58, 34, .8);
+}
+/* moulded grip ribs on the caddy front */
+.caddy-front::before {
+  content: "";
+  position: absolute;
+  left: 50%; top: 10px;
+  width: 54px; height: 9px;
+  margin-left: -27px;
+  background: repeating-linear-gradient(90deg,
+    rgba(120, 104, 70, .22) 0 2px,
+    rgba(255, 255, 255, .5) 2px 4px);
+  border-radius: 1px;
+}
+
+.caddy-count {
+  text-align: center;
+  font-family: var(--hand);
+  font-size: 19px;
+  color: var(--ink-dim);
+  margin-top: 8px;
+}
+
+/* ---------- the playlist, on a post-it ---------- */
+
+.postit {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  margin-top: 26px;
+  padding: 22px 22px 26px;
+  background: linear-gradient(178deg, #fdf58a 0%, #fbf179 14%, #f8ea66 100%);
+  transform: rotate(-1.6deg);
+  box-shadow:
+    0 1px 1px rgba(90, 76, 20, .18),
+    0 12px 20px -14px rgba(70, 58, 20, .8);
+  font-family: var(--hand);
+  color: #26356b;
+}
+.postit[hidden] { display: none; }
+
+/* adhesive strip shows through at the top */
+.postit::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 26px;
+  background: linear-gradient(180deg, rgba(190, 170, 40, .13), transparent);
+  pointer-events: none;
+}
+/* lifted bottom-right corner */
+.postit::after {
+  content: "";
+  position: absolute;
+  right: 0; bottom: 0;
+  width: 34px; height: 34px;
+  background: linear-gradient(315deg, rgba(226, 214, 130, .95) 0 48%, rgba(0, 0, 0, .1) 50%, transparent 52%);
+  pointer-events: none;
+}
+
+.postit-title {
+  position: relative;
+  display: inline-block;
+  font-size: 29px;
+  font-weight: 700;
   line-height: 1;
-  color: #2b2a20;
-  letter-spacing: .5px;
+  margin: 0 0 14px;
+  transform: rotate(-.7deg);
 }
-.floppy-label .hand-sub {
-  font-family: var(--mono);
-  font-size: 13px;
-  color: #55503e;
-  letter-spacing: .5px;
-}
-
-.floppy.active .floppy-body {
-  box-shadow: 0 0 0 2px var(--phosphor), 0 4px 12px rgba(0,0,0,.5);
-}
-
-/* insert animation: disk lifts, shrinks, and fades toward the drive slot */
-.floppy.inserting .floppy-body {
-  animation: insert-disk .5s cubic-bezier(.5,0,.35,1) forwards;
-}
-@keyframes insert-disk {
-  0%   { transform: translateY(0) scale(1); opacity: 1; }
-  70%  { transform: translateY(-52px) scale(.55); opacity: .7; }
-  100% { transform: translateY(-70px) scale(.3); opacity: 0; }
+/* hand-drawn underline */
+.postit-title::after {
+  content: "";
+  position: absolute;
+  left: -3px; right: -8px; bottom: -6px;
+  height: 2px;
+  background: currentColor;
+  border-radius: 2px;
+  opacity: .5;
+  transform: rotate(.9deg);
 }
 
-/* ---------- disk contents panel ---------- */
-
-.contents-panel {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 12px 14px 14px;
-  animation: reveal-panel .35s ease both;
-}
-@keyframes reveal-panel {
-  from { opacity: 0; transform: translateY(-8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.contents-title {
-  display: flex; align-items: center; justify-content: space-between;
-  font-family: var(--chrome);
-  font-size: 11px;
-  letter-spacing: 1px;
-  color: var(--phosphor);
-  padding-bottom: 10px;
-  margin-bottom: 8px;
-  border-bottom: 1px dashed var(--line);
-}
-
-.contents-list {
+.postit-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  max-height: 340px;
+  gap: 2px;
+  max-height: 320px;
   overflow-y: auto;
 }
-.contents-list::-webkit-scrollbar { width: 8px; }
-.contents-list::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+.postit-list::-webkit-scrollbar { width: 6px; }
+.postit-list::-webkit-scrollbar-thumb { background: rgba(90, 76, 20, .25); border-radius: 3px; }
 
-.content-row {
-  display: grid;
-  grid-template-columns: 28px 1fr auto;
-  align-items: center;
+.track {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   gap: 10px;
-  padding: 7px 8px;
-  border-radius: 3px;
+  width: 100%;
+  padding: 3px 4px 3px 20px;
+  border: 0;
+  background: none;
+  font-family: var(--hand);
+  font-size: 21px;
+  line-height: 1.25;
+  color: inherit;
+  text-align: left;
   cursor: pointer;
-  background: transparent;
-  border: 1px solid transparent;
+  border-radius: 3px;
 }
-.content-row:hover { background: var(--panel2); }
-.content-row.active {
-  background: var(--panel2);
-  border-color: var(--phosphor-dim);
+.postit-list li:nth-child(even) .track { transform: rotate(-.25deg); }
+.postit-list li:nth-child(3n) .track  { transform: rotate(.3deg); }
+.track:hover { background: rgba(255, 255, 255, .35); }
+
+.track .tick {
+  position: absolute;
+  left: 0;
+  opacity: 0;
+  transition: opacity .15s ease;
 }
-.content-row .idx { color: var(--ink-dim); font-size: 15px; }
-.content-row .name { color: var(--ink); font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.content-row.active .name { color: var(--phosphor); }
-.content-row .fmt {
-  font-family: var(--chrome);
-  font-size: 8px;
-  letter-spacing: .5px;
-  color: var(--ink-dim);
-  border: 1px solid var(--line);
-  padding: 3px 5px;
-  border-radius: 2px;
+.track .fmt {
+  font-size: 16px;
+  opacity: .55;
   white-space: nowrap;
+  text-transform: lowercase;
+}
+
+.track.playing { font-weight: 700; }
+.track.playing .tick { opacity: 1; }
+.track.playing .name { text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
+
+@media (max-width: 900px) {
+  .library h2 { align-self: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .disk, .disk.from-left, .disk.from-right, .disk.inserting { animation: none; transition: none; }
 }
