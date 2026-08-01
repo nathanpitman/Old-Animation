@@ -19,24 +19,6 @@
   const captionDims = document.getElementById('captionDims');
   const emptyState = document.getElementById('emptyState');
   const driveLed = document.getElementById('driveLed');
-  const phosphorToggle = document.getElementById('phosphorToggle');
-
-  const PHOSPHOR_FILTERS = {
-    amber: 'grayscale(1) sepia(1) hue-rotate(-18deg) saturate(5) brightness(1.05) contrast(1.05)',
-    green: 'grayscale(1) sepia(1) hue-rotate(62deg) saturate(5) brightness(1.05) contrast(1.05)',
-    color: 'none',
-  };
-
-  function setPhosphorMode(mode) {
-    document.documentElement.dataset.phosphor = mode;
-    canvas.style.filter = PHOSPHOR_FILTERS[mode] || 'none';
-    [...phosphorToggle.children].forEach((b) => b.classList.toggle('active', b.dataset.mode === mode));
-  }
-  phosphorToggle.addEventListener('click', (e) => {
-    const btn = e.target.closest('button[data-mode]');
-    if (btn) setPhosphorMode(btn.dataset.mode);
-  });
-  setPhosphorMode('amber');
 
   function setControlsEnabled(enabled) {
     playBtn.disabled = !enabled;
